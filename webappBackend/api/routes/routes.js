@@ -4,6 +4,8 @@ module.exports = app => {
 
   // Create a new User
   router.post("/", userAccountController.create);
+  router.put("/", userAccountController.update);
+  router.get("/", userAccountController.view);
 
   app.use('/api/accounts', router);
 };

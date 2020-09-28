@@ -5,6 +5,10 @@ const cors = require("cors");
 const port =3000;
 const app = express();
 
+//auth function
+
+
+
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
 
@@ -16,9 +20,16 @@ const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 var routes = require('./api/routes/Routes');
-routes(app); //register the route
 
+//register the route
+routes(app); 
+
+
+
+//to sync database
 models.sequelize.sync().then(function() {
 app.listen(port);
-});
 console.log('API server started on: ' + port);
+});
+
+
