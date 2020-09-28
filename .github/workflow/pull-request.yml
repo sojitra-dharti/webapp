@@ -1,0 +1,20 @@
+name: pull request check workflow
+
+on:  
+  pull_request:    
+    branches:
+      - master
+      
+jobs:
+  build:
+    pr-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
