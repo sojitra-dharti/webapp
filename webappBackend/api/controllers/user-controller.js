@@ -135,8 +135,16 @@ exports.update = (req, res) => {
 
 }
 
-//get user information
 exports.view = (req, res) => {
+  User.findAll({
+    where: {
+      email: username
+    }
+  }).then(function (result) { res.send(result[0]);});
+}
+
+//get user information
+exports.view1 = (req, res) => {
     var userCredentials = auth(req);
     var username = userCredentials.name;
     var password = userCredentials.pass;

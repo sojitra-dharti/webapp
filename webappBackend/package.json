@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -14,12 +15,16 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "mocha": "^8.1.3",
     "mysql2": "^2.2.5",
     "sequelize": "^6.3.5",
     "sequelize-auto": "^0.6.1",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "nodemon": "^2.0.4",
+    "should": "^13.2.3"
   }
 }
