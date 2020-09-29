@@ -1,4 +1,7 @@
 'use strict';
+
+const { DataTypes } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
 const User = sequelize.define('User', {
     id: {
@@ -15,7 +18,6 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    
     password: {
         allowNull: false,
         type: DataTypes.STRING 
@@ -24,7 +26,24 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique:true,
         type: DataTypes.STRING
+    }, 
+    account_created: {
+        allowNull: false,
+        unique:true,
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    account_updated: {
+        allowNull: false,
+        unique:true,
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     }
+}
+,{
+    timestamps: false,
+    freezeTableName: true,
+    modelName: 'singularName'
 });
 return User;
 }
