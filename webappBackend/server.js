@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 8080;
 
 app.use(cors());
-var routes = require('./api/routes/Routes');
+var routes = require('./api/routes/routes');
 
 //register the route
 routes(app); 
