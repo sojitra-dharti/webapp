@@ -59,7 +59,7 @@ exports.create = (req, res) => {
   }
 };
 
-
+//update user profile
 exports.update = (req, res) => {
 
   var userCredentials = auth(req);
