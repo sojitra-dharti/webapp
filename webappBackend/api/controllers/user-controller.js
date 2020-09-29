@@ -5,7 +5,7 @@ const saltRounds = 10;
 const User = db.users;
 const { v4: uuidv4 } = require('uuid');
 const RegexForEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-const RegexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$/;
+const RegexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{9,20}$/;
 
 // Create and Save a new User
 exports.create = (req, res) => {
@@ -17,7 +17,7 @@ exports.create = (req, res) => {
   var email_address = req.body.email_address;
   var password = req.body.password;
 
-  var passwordlength = password.length;
+
   var isEmailValid = RegexForEmail.test(email_address);
   var isStrongPassword = RegexPassword.test(password);
 
@@ -43,15 +43,21 @@ exports.create = (req, res) => {
           email_address: req.body.email_address,
           first_name: req.body.first_name,
           last_name: req.body.last_name,
-          password: hash,
-          createdat:dateval,
-          updatedat:dateval,
+          password: hash
         };
         User.create(user)
           .then(data => {
-            res.status(201).send(data);
+            var user ={id: data.id,
+              email_address: data.email_address,
+              first_name: data.first_name,
+              last_name: data.last_name,
+              account_updated:data.account_updated,
+              account_created:data.account_created
+            }
+            res.status(201).send(user);
           })
           .catch(err => {
+            console.log(err);
             res.status(400).send("User with this email_address already exists, please try with different email_address.");
           });
       });
@@ -63,26 +69,26 @@ exports.create = (req, res) => {
 exports.update = (req, res) => {
 
   var userCredentials = auth(req);
+  var id = req.body.id;
   var first_name = req.body.first_name;
   var last_name = req.body.last_name;
   var password = req.body.password;
   var email_address = req.body.email_address;
-  var createdat = req.body.createdat;
-  var updatedat = req.body.updatedat;
+  var account_created = req.body.account_created;
+  var account_updated = req.body.account_updated;
   var currentDate = new Date();
-  currentDate = currentDate.toISOString();
 
   var isStrongPassword = RegexPassword.test(password);
 
   if (!userCredentials) {
     res.send('Access denied')
-  } else if (email_address || createdat || updatedat) {
+  } else if (id || email_address || account_created || account_updated) {
     res.status(400).send({
       Message: "User can only update first_name,last_name and password"
     });
   } else if (!password && isStrongPassword) {
     res.status(400).send({
-      Message: "Input Password should be 8 to 20 characters which contain at least one numeric digit, one uppercase and one lowercase letter !"
+      Message: "Input Password should be 9 to 20 characters which contain at least one numeric digit, one uppercase and one lowercase letter !"
     });
   } else {
     var username = userCredentials.name;
@@ -103,15 +109,14 @@ exports.update = (req, res) => {
                     first_name: first_name,
                     last_name: last_name,
                     password: hash,
-                    updatedat: currentDate
+                    account_updated: currentDate
                   }, {
               where: { email_address: username }
             })
               .then(num => {
                 if (num == 1) {
-                  res.send({
-                    message: "user was updated successfully."
-                  });
+                  console.log("User updated successfully");
+                  res.status(204).end();
                 } else {
                   res.send({
                     message: `Cannot update user with id=${id}. User may not found or information might be empty!`
@@ -146,21 +151,18 @@ exports.view = (req, res) => {
         email_address: username
       }
     }).then(function (result) {
+      if(result.length==0)
+      {
+        res.send("No data found !")
+      }
       var valid = bcrypt.compareSync(password, result[0].password);
       if (valid) {
             User.findAll({
-              where: { email_address: username }
+              where: { email_address: username },
+              attributes: ['id', 'first_name', 'last_name', 'email_address', 'account_created','account_updated'],
             
           }).then(function(result){
-                var user = {
-                  first_name : result[0].first_name,
-                  last_name:result[0].last_name,
-                  email_address:result[0].email_address,
-                  createdat:result[0].createdat,
-                  updatedat:result[0].updatedat
-
-                }
-                  res.send(user);
+                  res.send(result);
               })
               .catch(err => {
                 res.status(500).send({
