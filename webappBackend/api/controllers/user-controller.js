@@ -12,18 +12,18 @@ exports.create = (req, res) => {
   var uuid = uuidv4();
   var dateval = new Date();
   dateval = dateval.toISOString();
-  var firstname = req.body.firstname;
-  var lastname = req.body.lastname;
-  var email = req.body.email;
+  var first_name = req.body.first_name;
+  var last_name = req.body.last_name;
+  var email_address = req.body.email_address;
   var password = req.body.password;
 
   var passwordlength = password.length;
-  var isEmailValid = RegexForEmail.test(email);
+  var isEmailValid = RegexForEmail.test(email_address);
   var isStrongPassword = RegexPassword.test(password);
 
-  if (!firstname || !lastname || !password || !email) {
+  if (!first_name || !last_name || !password || !email_address) {
     res.status(400).send({
-      Message: "please provide firstname, lastname, email, password"
+      Message: "please provide first_name, last_name, email_address, password"
     });
   }
   else if (!isStrongPassword) {
@@ -32,7 +32,7 @@ exports.create = (req, res) => {
     });
   } else if (!isEmailValid) {
     res.status(400).send({
-      Message: "Please enter a valid email address!"
+      Message: "Please enter a valid email_address address!"
     });
 
   } else {
@@ -40,9 +40,9 @@ exports.create = (req, res) => {
       bcrypt.hash(req.body.password, salt, function (err, hash) {
         const user = {
           id: uuid,
-          email: req.body.email,
-          firstname: req.body.firstname,
-          lastname: req.body.lastname,
+          email_address: req.body.email_address,
+          first_name: req.body.first_name,
+          last_name: req.body.last_name,
           password: hash,
           createdat:dateval,
           updatedat:dateval,
@@ -52,7 +52,7 @@ exports.create = (req, res) => {
             res.status(201).send(data);
           })
           .catch(err => {
-            res.status(400).send("User with this email already exists, please try with different email.");
+            res.status(400).send("User with this email_address already exists, please try with different email_address.");
           });
       });
     });
@@ -63,10 +63,10 @@ exports.create = (req, res) => {
 exports.update = (req, res) => {
 
   var userCredentials = auth(req);
-  var firstname = req.body.firstname;
-  var lastname = req.body.lastname;
+  var first_name = req.body.first_name;
+  var last_name = req.body.last_name;
   var password = req.body.password;
-  var email = req.body.email;
+  var email_address = req.body.email_address;
   var createdat = req.body.createdat;
   var updatedat = req.body.updatedat;
   var currentDate = new Date();
@@ -76,11 +76,11 @@ exports.update = (req, res) => {
 
   if (!userCredentials) {
     res.send('Access denied')
-  } else if (email || createdat || updatedat) {
+  } else if (email_address || createdat || updatedat) {
     res.status(400).send({
-      Message: "User can only update firstname,lastname and password"
+      Message: "User can only update first_name,last_name and password"
     });
-  } else if (!isStrongPassword) {
+  } else if (!password && isStrongPassword) {
     res.status(400).send({
       Message: "Input Password should be 8 to 20 characters which contain at least one numeric digit, one uppercase and one lowercase letter !"
     });
@@ -90,7 +90,7 @@ exports.update = (req, res) => {
 
     User.findAll({
       where: {
-        email: username
+        email_address: username
       }
     }).then(function (result) {
       var valid = bcrypt.compareSync(password, result[0].password);
@@ -100,12 +100,12 @@ exports.update = (req, res) => {
           bcrypt.hash(req.body.password, salt, function (err, hash) {
            
             User.update({
-                    firstname: firstname,
-                    lastname: lastname,
+                    first_name: first_name,
+                    last_name: last_name,
                     password: hash,
                     updatedat: currentDate
                   }, {
-              where: { email: username }
+              where: { email_address: username }
             })
               .then(num => {
                 if (num == 1) {
@@ -135,35 +135,27 @@ exports.update = (req, res) => {
 
 }
 
-exports.view = (req, res) => {
-  User.findAll({
-    where: {
-      email: username
-    }
-  }).then(function (result) { res.send(result[0]);});
-}
-
 //get user information
-exports.view1 = (req, res) => {
+exports.view = (req, res) => {
     var userCredentials = auth(req);
     var username = userCredentials.name;
     var password = userCredentials.pass;
 
     User.findAll({
       where: {
-        email: username
+        email_address: username
       }
     }).then(function (result) {
       var valid = bcrypt.compareSync(password, result[0].password);
       if (valid) {
             User.findAll({
-              where: { email: username }
+              where: { email_address: username }
             
           }).then(function(result){
                 var user = {
-                  firstname : result[0].firstname,
-                  lastname:result[0].lastname,
-                  email:result[0].email,
+                  first_name : result[0].first_name,
+                  last_name:result[0].last_name,
+                  email_address:result[0].email_address,
                   createdat:result[0].createdat,
                   updatedat:result[0].updatedat
 
