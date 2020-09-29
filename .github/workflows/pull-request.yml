@@ -22,6 +22,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - run: npm ci
-    - run: npm run build
-    - run: npm run test
+    - run: npm install
+    - run: node server.js
+    - run: npm test
+      env:
+        CI: true
