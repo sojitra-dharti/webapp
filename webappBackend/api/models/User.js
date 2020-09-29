@@ -7,11 +7,11 @@ const User = sequelize.define('User', {
         unique:true,
         type: DataTypes.UUID,
     },
-    firstname: {
+    first_name: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    lastname: {
+    last_name: {
         type: DataTypes.STRING,
         allowNull: false
     },
@@ -20,7 +20,7 @@ const User = sequelize.define('User', {
         allowNull: false,
         type: DataTypes.STRING 
     },
-    email: {
+    email_address: {
         allowNull: false,
         unique:true,
         type: DataTypes.STRING
