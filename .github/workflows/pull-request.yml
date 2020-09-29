@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: 12.x
     - run: npm install
-    - run: node server.js
-    - run: npm test
+    - run: npm run start
+    - run: npm run test
       env:
         CI: true
