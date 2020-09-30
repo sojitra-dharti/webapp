@@ -1,7 +1,7 @@
 var assert = require('assert');
 var expect = require('chai').expect;
-const getUser = require('../api/controllers/user-controller').getUser;
-const { timeStamp } = require('console');
+const getUser = require('../index').getUser;
+
 
 describe('Array', function () {
   describe('#indexOf()', function () {

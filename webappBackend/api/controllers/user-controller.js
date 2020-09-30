@@ -1,7 +1,6 @@
 const db = require("../models");
 const bcrypt = require('bcrypt');
 const auth = require('basic-auth');
-const axios = require('axios');
 const saltRounds = 10;
 const User = db.users;
 const { v4: uuidv4 } = require('uuid');
@@ -178,12 +177,3 @@ exports.view = (req, res) => {
     });
 }
 
-//mock test api
-module.exports = {
-  getUser(username) {
-    return axios
-      .get(`https://api.github.com/users/${username}`)
-      .then(res => res.data)
-      .catch(error => console.log(error));
-  }
-}
