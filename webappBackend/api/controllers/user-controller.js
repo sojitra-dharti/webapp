@@ -170,7 +170,7 @@ exports.view = (req, res) => {
                 });
               });
       } else {
-        res.end('Access denied')
+        res.status(401).end('Access denied')
       }
     }).catch(function (err) {
       console.log(err);
