@@ -45,3 +45,6 @@ https://medium.com/@svsh227/write-your-first-test-case-in-your-node-app-using-mo
 
 https://scotch.io/tutorials/nodejs-tests-mocking-http-requests
 
+
+update readme
+
