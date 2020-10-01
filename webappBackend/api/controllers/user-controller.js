@@ -99,8 +99,12 @@ exports.update = (req, res) => {
         email_address: username
       }
     }).then(function (result) {
+      if(result.length==0)
+      {
+        res.send(401).end()
+      }
       var valid = bcrypt.compareSync(password, result[0].password);
-
+      
       if (valid) {
         bcrypt.genSalt(saltRounds, function (err, salt) {
           bcrypt.hash(req.body.password, salt, function (err, hash) {
