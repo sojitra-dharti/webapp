@@ -38,7 +38,10 @@ Run `npm run test`
 
 ## References
 https://bezkoder.com/node-js-express-sequelize-mysql/
+
 https://docs.github.com/en/free-pro-team@latest/actions/quickstart
+
 https://medium.com/@svsh227/write-your-first-test-case-in-your-node-app-using-mocha-5250e614feb3
+
 https://scotch.io/tutorials/nodejs-tests-mocking-http-requests
 
