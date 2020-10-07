@@ -3,37 +3,24 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-const User = sequelize.define('User', {
+const Question = sequelize.define('Question', {
     id: {
         allowNull: false,
         primaryKey: true,
         unique:true,
         type: DataTypes.UUID,
     },
-    first_name: {
+    question_text: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    last_name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    password: {
-        allowNull: false,
-        type: DataTypes.STRING 
-    },
-    email_address: {
-        allowNull: false,
-        unique:true,
-        type: DataTypes.STRING
-    }, 
-    account_created: {
+    created_timestamp: {
         allowNull: false,
         unique:true,
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
     },
-    account_updated: {
+    updated_timestamp: {
         allowNull: false,
         unique:true,
         type: DataTypes.DATE,
@@ -46,12 +33,5 @@ const User = sequelize.define('User', {
     modelName: 'singularName'
 });
 
-// User.associate = function(models) {
-//     models.User.hasMany(models.Question,{foreignKey:{
-//         name: 'user_id',
-//         allowNull: false
-//     }, sourceKey:'id'});
-//   };
-return User;
+return Question;
 }
-

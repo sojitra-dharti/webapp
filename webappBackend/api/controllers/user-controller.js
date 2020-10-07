@@ -47,12 +47,13 @@ exports.create = (req, res) => {
         };
         User.create(user)
           .then(data => {
-            var user ={id: data.id,
+            var user = {
+              id: data.id,
               email_address: data.email_address,
               first_name: data.first_name,
               last_name: data.last_name,
-              account_updated:data.account_updated,
-              account_created:data.account_created
+              account_updated: data.account_updated,
+              account_created: data.account_created
             }
             res.status(201).send(user);
           })
@@ -99,22 +100,21 @@ exports.update = (req, res) => {
         email_address: username
       }
     }).then(function (result) {
-      if(result.length==0)
-      {
+      if (result.length == 0) {
         res.send(401).end()
       }
       var valid = bcrypt.compareSync(password, result[0].password);
-      
+
       if (valid) {
         bcrypt.genSalt(saltRounds, function (err, salt) {
           bcrypt.hash(req.body.password, salt, function (err, hash) {
-           
+
             User.update({
-                    first_name: first_name,
-                    last_name: last_name,
-                    password: hash,
-                    account_updated: currentDate
-                  }, {
+              first_name: first_name,
+              last_name: last_name,
+              password: hash,
+              account_updated: currentDate
+            }, {
               where: { email_address: username }
             })
               .then(num => {
@@ -146,38 +146,93 @@ exports.update = (req, res) => {
 
 //get user information
 exports.view = (req, res) => {
-    var userCredentials = auth(req);
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
+  var userCredentials = auth(req);
+  var username = userCredentials.name;
+  var password = userCredentials.pass;
 
-    User.findAll({
-      where: {
-        email_address: username
-      }
-    }).then(function (result) {
-      if(result.length==0)
-      {
-        res.send("No data found !")
-      }
-      var valid = bcrypt.compareSync(password, result[0].password);
-      if (valid) {
-            User.findAll({
-              where: { email_address: username },
-              attributes: ['id', 'first_name', 'last_name', 'email_address', 'account_created','account_updated'],
-            
-          }).then(function(result){
-                  res.send(result);
-              })
-              .catch(err => {
-                res.status(500).send({
-                  message: "Error fetching user =" + username
-                });
-              });
-      } else {
-        res.status(401).end('Access denied')
-      }
-    }).catch(function (err) {
-      console.log(err);
-    });
+  User.findAll({
+    where: {
+      email_address: username
+    }
+  }).then(function (result) {
+    if (result.length == 0) {
+      res.send("No data found !")
+    }
+    var valid = bcrypt.compareSync(password, result[0].password);
+    if (valid) {
+      User.findAll({
+        where: { email_address: username },
+        attributes: ['id', 'first_name', 'last_name', 'email_address', 'account_created', 'account_updated'],
+
+      }).then(function (result) {
+        res.send(result);
+      })
+        .catch(err => {
+          res.status(500).send({
+            message: "Error fetching user =" + username
+          });
+        });
+    } else {
+      res.status(401).end('Access denied')
+    }
+  }).catch(function (err) {
+    console.log(err);
+  });
 }
 
+exports.findByName = (username) => {
+  return User.findAll({
+    where: {
+      email_address: username
+    }
+  }).then(function (result) {
+    if (result.length == 0) {
+      return null;
+    }
+    return result;
+  }).catch(err => {
+    console.log(err);
+  });
+}
+
+// checks if user is authorized
+exports.IsValid = (username, password) => {
+  return User.findAll({
+    where: {
+      email_address: username
+    }
+  }).then(function (result) {
+    if (result.length == 0) {
+      return false;
+    }
+    if (result) {
+      var valid = bcrypt.compareSync(password, result[0].password);
+      if (valid) {
+        return result;
+      }
+      else {
+        return null;
+      }
+    }
+
+  }).catch(err => {
+    console.log(err);
+  });
+}
+
+exports.viewById = (req,res) =>{
+  User.findAll(
+    {
+    where: {
+      id: req.params.id
+    }
+  }).then(function (result) {
+    if(result.length==0)
+    {
+      res.status(400).send("not found!")
+    }
+    res.send(result);
+  }).catch(err=>{
+    console.log(err);
+  })
+}
