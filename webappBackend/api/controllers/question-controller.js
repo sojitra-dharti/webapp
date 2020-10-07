@@ -14,7 +14,7 @@ const { v4: uuidv4 } = require('uuid');
 
 
 exports.createQues = (question) => {
-    return  Question.create(question)
+    return Question.create(question)
         .then((ques) => {
             console.log(">> Created Question: " + ques);
             return ques;
@@ -26,26 +26,22 @@ exports.createQues = (question) => {
 
 
 exports.create = async (req, res) => {
-    var userCredentials = auth(req);
+
     var uuid = uuidv4();
     var currentDate = new Date();
     var question_text = req.body.question_text;
     var categories = req.body.categories;
-    var quesId;
 
     if (!question_text || !categories) {
         res.status(400).send({
             Message: "please provide question and categories !"
         });
     }
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
-
-    const existUser = await Usercontroller.findByName(username);
-    if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    if (existUser) {
 
         const quesdata = {
-            id:uuid,
+            id: uuid,
             UserId: existUser[0].id,
             question_text: req.body.question_text,
             created_timestamp: currentDate,
@@ -57,28 +53,30 @@ exports.create = async (req, res) => {
             const existCat = await Catcontroller.findByName(categories[i]);
             await Catcontroller.addQuestion(existCat[0].id, ques1.id);
         }
-        const ques =   await Question.findAll(
-             {
-                 where: {
-                id: ques1.id
-        },
-            include: [
-                {
-                    model: Category,
-                    as: "categories",
-                    through: {
-                        attributes: [],
-                    }
+        const ques = await Question.findAll(
+            {
+                where: {
+                    id: ques1.id
                 },
-            ],
-        }).catch((err) => {
+                include: [
+                    {
+                        model: Category,
+                        as: "categories",
+                        through: {
+                            attributes: [],
+                        }
+                    },
+                ],
+            }).catch((err) => {
                 console.log(">> Error while retrieving questions: ", err);
             });
-            res.send(ques[0]);
-     
+        res.send(ques[0]);
+
     }
     else {
-        res.status(401).send("unauthorized");
+        res.status(401).send({
+            Message: "user unauthorized"
+        });
     }
 };
 exports.findAll = (req, res) => {
@@ -140,68 +138,78 @@ exports.getQuestionById = (req, res) => {
         .then(ques => {
             res.status(200).send(ques);
         }).catch(err => {
-            res.status(404).send("Question not found");
+            res.status(404).send({
+                Message: "Question not found"
+            });
         });
 
 }
 
 exports.updateQuestion = async (req, res) => {
-    var userCredentials = auth(req);
+
     var currentDate = new Date();
     var questiontext = req.body.question_text;
     var categories = req.body.categories;
     var questionId = req.params.questionId;
-    //Change validations. User can update either or both feilds. Dharti
-    if (!questiontext || !categories) {
+
+    if (!questiontext && !categories) {
         res.status(400).send({
-            Message: "please provide question and categories !"
+            Message: "please provide question or categories !"
         });
     }
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
-
-    const existUser = await Usercontroller.findByName(username);
-    if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
 
 
-        const existQues = await this.getQuestionByIdAndUserId(questionId, existUser[0].id);
-        if (!existQues) {
-            res.status(404).send("question not found");
-        }
-        question_category.destroy({
-            where: {
-                ques_id: existQues[0].id
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    if (existUser) {
+        if (categories) {
+            const existQues = await this.getQuestionByIdAndUserId(questionId, existUser[0].id);
+            if (!existQues || existQues.length == 0) {
+                res.status(404).send({
+                    Message: "question not found !"
+                });
             }
-        }).catch(err => { console.log(err) })
+            question_category.destroy({
+                where: {
+                    ques_id: existQues[0].id
+                }
+            }).catch(err => { console.log(err) })
 
-
-        Question.update({
-            question_text: questiontext,
-            updated_timestamp: currentDate
-        }, {
-            where:
-            {
-                id: questionId,
-                UserId: existUser[0].id
+            for (i = 0; i < categories.length; i++) {
+                const existCat = await Catcontroller.findByName(categories[i]);
+                await Catcontroller.addQuestion(existCat[0].id, questionId);
             }
-        })
-            .then((result) => {
-                if (reault == 0) {
-                    res.status(404).send();
-                }
-                else {
-                    res.send("question rows updated" + result);
-                }
-            });
-
-        for (i = 0; i < categories.length; i++) {
-            const existCat = await Catcontroller.findByName(categories[i]);
-            await Catcontroller.addQuestion(existCat[0].id, questionId);
+           
         }
-        res.send("success");
+         if (questiontext) {
+
+            Question.update({
+                question_text: questiontext,
+                updated_timestamp: currentDate
+            }, {
+                where:
+                {
+                    id: questionId,
+                    UserId: existUser[0].id
+                }
+            })
+                .then((result) => {
+                    if (reault == 0) {
+                        res.status(404).send();
+                    }
+                    else {
+                        res.send({
+                            Message: "question rows updated" + result
+                        });
+                    }
+                });
+
+        }
+        res.status(204).send();
     }
     else {
-        res.status(401).send("unauthorized");
+        res.status(401).send({
+            Message: "unauthorized"
+        });
     }
 }
 
@@ -229,16 +237,11 @@ exports.getQuestionByIdAndUserId = (questionId, userId) => {
 }
 
 exports.deleteQuestion = async (req, res) => {
-    var userCredentials = auth(req);
+
     var questionId = req.params.questionId;
 
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
-
-    const existUser = await Usercontroller.findByName(username);
-    if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
-
-
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    if (existUser) {
         const existAnswer = await Anscontroller.getAnswerByQuesId(questionId);
 
         if (existAnswer.length <= 0) {
@@ -250,19 +253,28 @@ exports.deleteQuestion = async (req, res) => {
                     UserId: existUser[0].id
                 }
             }).then((result) => {
-                if(result==0)
-                {
-                    res.status(404).send("Question not found");
+                if (result == 0) {
+                    res.status(404).send({
+                        Message: "Question not found"
+                    });
                 }
-                res.status(204).send("Question deleted");
+                res.status(204).send({
+                    Message: "Question deleted"
+                });
             })
                 .catch(err => { console.log(err) })
         }
         else {
-            res.status(400).send("question with one or more answers can not be deleted !");
+            res.status(400).send({
+                Message: "question with one or more answers can not be deleted !"
+            });
         }
     }
     else {
-        res.status(401).send("unauthorized");
+        res.status(401).send({
+            Message: "unauthorized"
+        });
     }
 }
+
+

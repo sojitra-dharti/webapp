@@ -22,11 +22,13 @@ exports.create = async (req, res) => {
 
     const user = await Usercontroller.IsValid(username, password);
     if (!user) {
-        res.status(401).send("User is not authorized !");
+        res.status(401).send({
+            Message:"User is not authorized !"});
     }
     const ifQuesExists = await Quescontroller.ifQuesExists(questionId);
     if (!ifQuesExists) {
-        res.status(400).send("Question not found !");
+        res.status(400).send({
+            Message:"Question not found !"});
     }
 
     const answer = {
@@ -39,7 +41,8 @@ exports.create = async (req, res) => {
     Answer.create(answer).then(ans => {
         res.status(201).send(ans);
     }).catch(err => {
-        res.send("Error in creating answer");
+        res.send({
+            Message:"Error in creating answer"});
         console.log(err);
     });
 
@@ -49,7 +52,8 @@ exports.getAnswerById = (req, res) => {
 
     // validation for mandatory question and answerid else bad 404
     if (!req.params.questionId || !req.params.answerId) {
-        res.status(404).send("questionid and answerid required !")
+        res.status(404).send({
+            Message:"questionid and answerid required !"})
     }
 
     return Answer.findAll(
@@ -63,7 +67,8 @@ exports.getAnswerById = (req, res) => {
         .then(ques => {
             res.status(200).send(ques);
         }).catch(err => {
-            res.status(404).send("Answer not found");
+            res.status(404).send({
+                Message:"Answer not found"});
         });
 }
 
@@ -101,12 +106,16 @@ exports.deleteAnswer = async (req, res) => {
         }).then((result) => {
             if(result==0)
             {
-                res.status(404).send("Answer not found !");
+                res.status(404).send({
+                    Message:"Answer not found !"});
             }
-            res.status(204).send("Answer deleted !");
-        }).catch(err => { res.status(204).send("Answer not found!"); })
+            res.status(204).send({
+                Message:"Answer deleted !"});
+        }).catch(err => { res.status(204).send({
+            Message:"Answer not found!"}); })
     } else {
-        res.status(401).send("unauthorized");
+        res.status(401).send({
+            Message:"user unauthorized"});
     }
 }
 
@@ -141,16 +150,19 @@ exports.updateAnswer = async (req, res) => {
         })
             .then((result) => {
                 if (result == 0) {
-                    res.status(404).send("User can only update their own answers");
+                    res.status(404).send({
+                        Message:"User can only update their own answers"});
                 }
                 else {
                     res.send(204);
-                    console.log("Answer updated" + result);
+                    console.log({
+                        Message:"Answer updated" + result});
                 }
             });
     }
     else {
-        res.status(401).send("unauthorized");
+        res.status(401).send({
+            Message:"unauthorized"});
     }
 }
 

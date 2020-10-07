@@ -59,7 +59,8 @@ exports.create = (req, res) => {
           })
           .catch(err => {
             console.log(err);
-            res.status(400).send("User with this email_address already exists, please try with different email_address.");
+            res.status(400).send({
+              Message:"User with this email_address already exists, please try with different email_address."});
           });
       });
     });
@@ -156,7 +157,8 @@ exports.view = (req, res) => {
     }
   }).then(function (result) {
     if (result.length == 0) {
-      res.send("No data found !")
+      res.send({
+        Message:"No data found !"})
     }
     var valid = bcrypt.compareSync(password, result[0].password);
     if (valid) {
@@ -229,10 +231,31 @@ exports.viewById = (req,res) =>{
   }).then(function (result) {
     if(result.length==0)
     {
-      res.status(400).send("not found!")
+      res.status(400).send({
+        Message:"not found!"})
     }
     res.send(result);
   }).catch(err=>{
     console.log(err);
   })
+}
+
+exports.IsAuthenticated = async (req, res) =>{
+  var userCredentials = auth(req);
+
+  if (userCredentials) {
+      var username = userCredentials.name;
+      var password = userCredentials.pass;
+
+      const existUser = await this.findByName(username);
+      if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
+         return existUser;
+      }
+      else {
+          res.status(401).send({ Message: "user unauthorized !" })
+      }
+  }
+  else {
+      res.status(400).send({ Message: "Please provide user credentials" })
+  }
 }

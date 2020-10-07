@@ -22,9 +22,9 @@ routes(app);
 
 //to sync database
 models.sequelize.sync(
-    {
-    force: true
-}
+//     {
+//     force: true
+// }
 ).then(function() {
 app.listen(port);
 console.log('API server started on: ' + port);
