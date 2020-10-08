@@ -185,7 +185,7 @@ exports.updateQuestion = async (req, res) => {
         }
         if (questiontext) {
 
-            Question.update({
+            await Question.update({
                 question_text: questiontext,
                 updated_timestamp: currentDate
             }, {
@@ -195,12 +195,14 @@ exports.updateQuestion = async (req, res) => {
                     UserId: existUser[0].id
                 }
             })
-                .then((result) => {
+                .then(result => {
                     if (result == 0) {
-                        res.status(404).send();
+                        res.status(404).send({
+                            Message: "Question not found for this user !"
+                        })
                     }
                     else {
-                        res.send({
+                        res.status(204).send({
                             Message: "question rows updated" + result
                         });
                     }

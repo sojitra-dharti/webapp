@@ -84,7 +84,7 @@ exports.update = (req, res) => {
   var isStrongPassword = RegexPassword.test(password);
 
   if (!userCredentials) {
-    res.send('Access denied')
+    res.send({ Message: 'Access denied'})
   } else if (id || email_address || account_created || account_updated) {
     res.status(400).send({
       Message: "User can only update first_name,last_name and password"
@@ -103,7 +103,7 @@ exports.update = (req, res) => {
       }
     }).then(function (result) {
       if (result.length == 0) {
-        res.send(401).end()
+        res.status(401).send({Message:"Unauthorized"});
       }
       var valid = bcrypt.compareSync(password, result[0].password);
 
@@ -137,7 +137,7 @@ exports.update = (req, res) => {
           });
         });
       } else {
-        res.end('Access denied')
+        res.end({ Message: 'Access denied'})
       }
     }).catch(function (err) {
       console.log(err);
