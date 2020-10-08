@@ -32,11 +32,12 @@ exports.create = async (req, res) => {
     var question_text = req.body.question_text;
     var categories = req.body.categories;
 
-    if (!question_text || !categories) {
+    if (!question_text) {
         res.status(400).send({
-            Message: "please provide question and categories !"
+            Message: "please provide a question_text !"
         });
     }
+   
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     if (existUser) {
 
@@ -49,10 +50,13 @@ exports.create = async (req, res) => {
         };
         const ques1 = await this.createQues(quesdata);
 
+        if(categories)
+        {
         for (i = 0; i < categories.length; i++) {
             const existCat = await Catcontroller.findByName(categories[i]);
             await Catcontroller.addQuestion(existCat[0].id, ques1.id);
         }
+    }
         const ques = await Question.findAll(
             {
                 where: {
@@ -193,7 +197,7 @@ exports.updateQuestion = async (req, res) => {
                 }
             })
                 .then((result) => {
-                    if (reault == 0) {
+                    if (result == 0) {
                         res.status(404).send();
                     }
                     else {

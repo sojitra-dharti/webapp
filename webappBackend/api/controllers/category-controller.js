@@ -21,49 +21,55 @@ exports.create = (cat) => {
 
 
 
-exports.addQuestion = (catId, questionId) => {
-  return Cat.findByPk(catId)
+exports.addQuestion = async (catId, questionId) => {
+  await Cat.findByPk(catId)
     .then((cat) => {
       if (!cat) {
         console.log("cat not found!");
         return null;
-      }
-      return Question.findByPk(questionId).then((question) => {
-        if (!question) {
-          console.log("Question not found!");
-          return null;
-        }
-        const quescat =
-          { ques_id: questionId, category_id: catId }
-
-        question_category.create(quescat).then(data => {
-          console.log(`>> added Question id=${question.id} to cat id=${cat.id}`);
-          return cat;
-        }).catch(err => { })
-
+      } })
+      .catch((err) => {
+        console.log(">> Error while adding Question to cat: ", err);
       });
-    })
-    .catch((err) => {
-      console.log(">> Error while adding Question to cat: ", err);
-    });
+
+       await Question.findByPk(questionId)
+        .then((question) => {
+          if (!question) {
+            console.log("Question not found!");
+           // return null;
+          } }).catch((err) => {
+            console.log(err);
+          });
+          const quescat ={ ques_id: questionId, category_id: catId }
+
+           await question_category.create(quescat)
+            .then(data => {
+              console.log(`>> added Question id=${question.id} to cat id=${cat.id}`);
+              //return cat;
+            }).catch(err => { console.log(err) })
+
+       
+   
 };
 
-exports.findByName = (cat) => {
+exports.findByName = async (cat) => {
   var uuid = uuidv4();
-  return Cat.findOrCreate({
+  const cate = await Cat.findOrCreate({
     where: {
-      id:uuid,
+
       category: cat
     },
     defaults: {
+      id: uuid,
       category: cat
     }
   }).catch(function (err) {
     console.log(err);
+    return null;
   }).then(function (category) {
     return category;
   });
-
+  return cate;
 
 
 }

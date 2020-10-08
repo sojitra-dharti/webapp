@@ -23,12 +23,14 @@ exports.create = async (req, res) => {
     const user = await Usercontroller.IsValid(username, password);
     if (!user) {
         res.status(401).send({
-            Message:"User is not authorized !"});
+            Message: "User is not authorized !"
+        });
     }
     const ifQuesExists = await Quescontroller.ifQuesExists(questionId);
     if (!ifQuesExists) {
         res.status(400).send({
-            Message:"Question not found !"});
+            Message: "Question not found !"
+        });
     }
 
     const answer = {
@@ -42,7 +44,8 @@ exports.create = async (req, res) => {
         res.status(201).send(ans);
     }).catch(err => {
         res.send({
-            Message:"Error in creating answer"});
+            Message: "Error in creating answer"
+        });
         console.log(err);
     });
 
@@ -53,7 +56,8 @@ exports.getAnswerById = (req, res) => {
     // validation for mandatory question and answerid else bad 404
     if (!req.params.questionId || !req.params.answerId) {
         res.status(404).send({
-            Message:"questionid and answerid required !"})
+            Message: "questionid and answerid required !"
+        })
     }
 
     return Answer.findAll(
@@ -68,7 +72,8 @@ exports.getAnswerById = (req, res) => {
             res.status(200).send(ques);
         }).catch(err => {
             res.status(404).send({
-                Message:"Answer not found"});
+                Message: "Answer not found"
+            });
         });
 }
 
@@ -90,12 +95,8 @@ exports.getAnswerByQuesId = (quesId) => {
 
 exports.deleteAnswer = async (req, res) => {
 
-    var userCredentials = auth(req);
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
-
-    const existUser = await Usercontroller.findByName(username);
-    if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    if (existUser) {
         Answer.destroy({
             where:
             {
@@ -104,23 +105,22 @@ exports.deleteAnswer = async (req, res) => {
                 UserId: existUser[0].id
             }
         }).then((result) => {
-            if(result==0)
-            {
+            if (result == 0) {
                 res.status(404).send({
-                    Message:"Answer not found !"});
+                    Message: "Answer not found !"
+                });
             }
-            res.status(204).send({
-                Message:"Answer deleted !"});
-        }).catch(err => { res.status(204).send({
-            Message:"Answer not found!"}); })
+            res.status(204).send();
+        }).catch(err => { res.status(204).send() })
     } else {
         res.status(401).send({
-            Message:"user unauthorized"});
+            Message: "user unauthorized"
+        });
     }
 }
 
 exports.updateAnswer = async (req, res) => {
-    var userCredentials = auth(req);
+    
     var currentDate = new Date();
     var answertext = req.body.answer_text;
     var questionId = req.params.questionId;
@@ -132,11 +132,11 @@ exports.updateAnswer = async (req, res) => {
             Message: "please provide answer_text !"
         });
     }
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
+  
 
-    const existUser = await Usercontroller.findByName(username);
-    if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    console.log(existUser[0].id);
+    if (existUser) {
         Answer.update({
             answer_text: answertext,
             updated_timestamp: currentDate,
@@ -151,18 +151,21 @@ exports.updateAnswer = async (req, res) => {
             .then((result) => {
                 if (result == 0) {
                     res.status(404).send({
-                        Message:"User can only update their own answers"});
+                        Message: "User can only update their own answers"
+                    });
                 }
                 else {
                     res.send(204);
                     console.log({
-                        Message:"Answer updated" + result});
+                        Message: "Answer updated" + result
+                    });
                 }
             });
     }
     else {
         res.status(401).send({
-            Message:"unauthorized"});
+            Message: "unauthorized"
+        });
     }
 }
 
