@@ -120,7 +120,7 @@ exports.deleteAnswer = async (req, res) => {
 }
 
 exports.updateAnswer = async (req, res) => {
-    
+
     var currentDate = new Date();
     var answertext = req.body.answer_text;
     var questionId = req.params.questionId;
@@ -132,7 +132,7 @@ exports.updateAnswer = async (req, res) => {
             Message: "please provide answer_text !"
         });
     }
-  
+
 
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     console.log(existUser[0].id);

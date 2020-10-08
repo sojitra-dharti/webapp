@@ -60,7 +60,8 @@ exports.create = (req, res) => {
           .catch(err => {
             console.log(err);
             res.status(400).send({
-              Message:"User with this email_address already exists, please try with different email_address."});
+              Message: "User with this email_address already exists, please try with different email_address."
+            });
           });
       });
     });
@@ -158,7 +159,8 @@ exports.view = (req, res) => {
   }).then(function (result) {
     if (result.length == 0) {
       res.send({
-        Message:"No data found !"})
+        Message: "No data found !"
+      })
     }
     var valid = bcrypt.compareSync(password, result[0].password);
     if (valid) {
@@ -222,40 +224,40 @@ exports.IsValid = (username, password) => {
   });
 }
 
-exports.viewById = (req,res) =>{
+exports.viewById = (req, res) => {
   User.findAll(
     {
-    where: {
-      id: req.params.id
-    }
-  }).then(function (result) {
-    if(result.length==0)
-    {
-      res.status(400).send({
-        Message:"not found!"})
-    }
-    res.send(result);
-  }).catch(err=>{
-    console.log(err);
-  })
+      where: {
+        id: req.params.id
+      }
+    }).then(function (result) {
+      if (result.length == 0) {
+        res.status(400).send({
+          Message: "not found!"
+        })
+      }
+      res.send(result);
+    }).catch(err => {
+      console.log(err);
+    })
 }
 
-exports.IsAuthenticated = async (req, res) =>{
+exports.IsAuthenticated = async (req, res) => {
   var userCredentials = auth(req);
 
   if (userCredentials) {
-      var username = userCredentials.name;
-      var password = userCredentials.pass;
+    var username = userCredentials.name;
+    var password = userCredentials.pass;
 
-      const existUser = await this.findByName(username);
-      if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
-         return existUser;
-      }
-      else {
-          res.status(401).send({ Message: "user unauthorized !" })
-      }
+    const existUser = await this.findByName(username);
+    if (existUser && bcrypt.compareSync(password, existUser[0].password)) {
+      return existUser;
+    }
+    else {
+      res.status(401).send({ Message: "user unauthorized !" })
+    }
   }
   else {
-      res.status(400).send({ Message: "Please provide user credentials" })
+    res.status(400).send({ Message: "Please provide user credentials" })
   }
 }

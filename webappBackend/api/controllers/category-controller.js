@@ -27,29 +27,31 @@ exports.addQuestion = async (catId, questionId) => {
       if (!cat) {
         console.log("cat not found!");
         return null;
-      } })
-      .catch((err) => {
-        console.log(">> Error while adding Question to cat: ", err);
-      });
+      }
+    })
+    .catch((err) => {
+      console.log(">> Error while adding Question to cat: ", err);
+    });
 
-       await Question.findByPk(questionId)
-        .then((question) => {
-          if (!question) {
-            console.log("Question not found!");
-           // return null;
-          } }).catch((err) => {
-            console.log(err);
-          });
-          const quescat ={ ques_id: questionId, category_id: catId }
+  await Question.findByPk(questionId)
+    .then((question) => {
+      if (!question) {
+        console.log("Question not found!");
+        // return null;
+      }
+    }).catch((err) => {
+      console.log(err);
+    });
+  const quescat = { ques_id: questionId, category_id: catId }
 
-           await question_category.create(quescat)
-            .then(data => {
-              console.log(`>> added Question id=${question.id} to cat id=${cat.id}`);
-              //return cat;
-            }).catch(err => { console.log(err) })
+  await question_category.create(quescat)
+    .then(data => {
+      console.log(`>> added Question id=${question.id} to cat id=${cat.id}`);
+      //return cat;
+    }).catch(err => { console.log(err) })
 
-       
-   
+
+
 };
 
 exports.findByName = async (cat) => {
