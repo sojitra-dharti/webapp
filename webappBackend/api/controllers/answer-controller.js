@@ -7,9 +7,7 @@ const Quescontroller = require("./question-controller");
 const Answer = db.answer;
 
 exports.create = async (req, res) => {
-    var userCredentials = auth(req);
-    var username = userCredentials.name;
-    var password = userCredentials.pass;
+
     var answer_text = req.body.answer_text;
     var questionId = req.params.questionId;
     var uuid = uuidv4();
@@ -19,35 +17,37 @@ exports.create = async (req, res) => {
             Message: "please provide answer_text !"
         });
     }
-
-    const user = await Usercontroller.IsValid(username, password);
-    if (!user) {
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    if (existUser) {
+        const ifQuesExists = await Quescontroller.ifQuesExists(questionId);
+        if (!ifQuesExists) {
+            res.status(400).send({
+                Message: "Question not found !"
+            });
+        }
+    
+        const answer = {
+            id: uuid,
+            answer_text: req.body.answer_text,
+            QuestionId: questionId,
+            UserId: existUser[0].id
+        }
+    
+        Answer.create(answer).then(ans => {
+            res.status(201).send(ans);
+        }).catch(err => {
+            res.send({
+                Message: "Error in creating answer"
+            });
+            console.log(err);
+        });
+    }
+   else {
         res.status(401).send({
             Message: "User is not authorized !"
         });
     }
-    const ifQuesExists = await Quescontroller.ifQuesExists(questionId);
-    if (!ifQuesExists) {
-        res.status(400).send({
-            Message: "Question not found !"
-        });
-    }
-
-    const answer = {
-        id: uuid,
-        answer_text: req.body.answer_text,
-        QuestionId: questionId,
-        UserId: user[0].id
-    }
-
-    Answer.create(answer).then(ans => {
-        res.status(201).send(ans);
-    }).catch(err => {
-        res.send({
-            Message: "Error in creating answer"
-        });
-        console.log(err);
-    });
+   
 
 }
 
