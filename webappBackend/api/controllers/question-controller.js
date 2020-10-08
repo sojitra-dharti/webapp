@@ -37,7 +37,7 @@ exports.create = async (req, res) => {
             Message: "please provide a question_text !"
         });
     }
-   
+
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     if (existUser) {
 
@@ -50,13 +50,12 @@ exports.create = async (req, res) => {
         };
         const ques1 = await this.createQues(quesdata);
 
-        if(categories)
-        {
-        for (i = 0; i < categories.length; i++) {
-            const existCat = await Catcontroller.findByName(categories[i]);
-            await Catcontroller.addQuestion(existCat[0].id, ques1.id);
+        if (categories) {
+            for (i = 0; i < categories.length; i++) {
+                const existCat = await Catcontroller.findByName(categories[i]);
+                await Catcontroller.addQuestion(existCat[0].id, ques1.id);
+            }
         }
-    }
         const ques = await Question.findAll(
             {
                 where: {
@@ -182,9 +181,9 @@ exports.updateQuestion = async (req, res) => {
                 const existCat = await Catcontroller.findByName(categories[i]);
                 await Catcontroller.addQuestion(existCat[0].id, questionId);
             }
-           
+
         }
-         if (questiontext) {
+        if (questiontext) {
 
             Question.update({
                 question_text: questiontext,
