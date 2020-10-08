@@ -1,7 +1,8 @@
+require('dotenv').config()
 module.exports = {
     HOST: "localhost",
     USER: "root",
-    PASSWORD: "",
+    PASSWORD: process.env.PASSWORD,
     DB: "useraccounts",
     dialect: "mysql",
     pool: {
