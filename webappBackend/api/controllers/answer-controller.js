@@ -133,7 +133,6 @@ exports.updateAnswer = async (req, res) => {
         });
     }
 
-
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     console.log(existUser[0].id);
     if (existUser) {
