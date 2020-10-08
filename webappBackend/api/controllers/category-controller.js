@@ -50,8 +50,6 @@ exports.addQuestion = async (catId, questionId) => {
       //return cat;
     }).catch(err => { console.log(err) })
 
-
-
 };
 
 exports.findByName = async (cat) => {
