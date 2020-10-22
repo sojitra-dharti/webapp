@@ -5,6 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 const Usercontroller = require("../controllers/user-controller");
 const Quescontroller = require("./question-controller");
 const Answer = db.answer;
+const File = db.file;
+const AWSFileUpload = require("./aws-file-upload-controller");
 
 exports.create = async (req, res) => {
 
@@ -97,6 +99,22 @@ exports.deleteAnswer = async (req, res) => {
 
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     if (existUser) {
+        await File.findOne({
+            where:
+            {
+                QuestionId: req.params.questionId,
+                AnswerId:req.params.answerId
+            }
+        }).then((file) => {
+
+            AWSFileUpload.deleteFileFromS3(file.id+file.file_name);
+            File.destroy({
+                where: {
+                    id: file.id,
+                }
+            })
+        })
+
         Answer.destroy({
             where:
             {

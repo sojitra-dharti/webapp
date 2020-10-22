@@ -9,8 +9,10 @@ const UserCategory = db.usercategory;
 const Catcontroller = require("./category-controller");
 const Usercontroller = require("./user-controller");
 const Anscontroller = require("./answer-controller");
+const AWSFileUpload = require("./aws-file-upload-controller");
 const question_category = db.question_category
 const { v4: uuidv4 } = require('uuid');
+const File = db.file;
 
 
 exports.createQues = (question) => {
@@ -95,6 +97,10 @@ exports.findAll = (req, res) => {
             {
                 model: Answer,
                 as: "answers"
+            },
+            {
+                model: File,
+                as: "Questionfiles"
             }
         ],
     })
@@ -250,6 +256,21 @@ exports.deleteQuestion = async (req, res) => {
         const existAnswer = await Anscontroller.getAnswerByQuesId(questionId);
 
         if (existAnswer.length <= 0) {
+
+            await File.findOne({
+                where:
+                {
+                    QuestionId: questionId
+                }
+            }).then((file) => {
+
+                AWSFileUpload.deleteFileFromS3(file.id+file.file_name);
+                File.destroy({
+                    where: {
+                        id: file.id,
+                    }
+                })
+            })
 
             Question.destroy({
                 where:
