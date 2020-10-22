@@ -1,4 +1,5 @@
 const db = require("../models");
+
 const { v4: uuidv4 } = require('uuid');
 const Usercontroller = require("./user-controller");
 const AWSFileUpload = require("./aws-file-upload-controller");
@@ -32,7 +33,7 @@ exports.createFile = async (req, res) => {
             res.status(400).send("File name invalid");
         }
         if(!file.name.match(/\.(jpg|jpeg|png)$/i)) {
-            res.status(400).send("User can upload images !");
+            res.status(400).send("User can upload only images !");
         }
 
         var metadata = {
