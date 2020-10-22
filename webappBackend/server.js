@@ -3,7 +3,7 @@ const models = require('./api/models');
 const bodyParser = require("body-parser");
 var fileUpload = require('express-fileupload');
 const cors = require("cors");
-const port =3000;
+const port = 3000;
 const app = express();
 
 // parse requests of content-type - application/json
@@ -20,16 +20,16 @@ app.use(cors());
 var routes = require('./api/routes/routes');
 
 //register the route
-routes(app); 
+routes(app);
 
 //to sync database
 models.sequelize.sync(
-    // {
-    //force: true
- //}
-).then(function() {
-app.listen(port);
-console.log('API server started on: ' + port);
+    {
+        force: true
+    }
+).then(function () {
+    app.listen(port);
+    console.log('API server started on: ' + port);
 });
 
 
