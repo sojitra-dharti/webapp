@@ -27,8 +27,6 @@ exports.uploadFileToS3 = async (file, filename) => {
 
 exports.deleteFileFromS3 = async (file) => {
     let s3bucket = new AWS.S3({
-        accessKeyId: s3Config.accessKeyId,
-        secretAccessKey: s3Config.secretAccessKey,
         Bucket: bucketName
     });
 
