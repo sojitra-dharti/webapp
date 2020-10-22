@@ -7,6 +7,11 @@ const Quescontroller = require("./question-controller");
 const Answer = db.answer;
 const File = db.file;
 const AWSFileUpload = require("./aws-file-upload-controller");
+const s3Config = require("../../config/s3-config.js");
+
+require('dotenv').config()
+const bucketName = s3Config.bucketName;
+const AWS = require('../../config/aws-config.js');
 
 exports.create = async (req, res) => {
 
@@ -27,14 +32,14 @@ exports.create = async (req, res) => {
                 Message: "Question not found !"
             });
         }
-    
+
         const answer = {
             id: uuid,
             answer_text: req.body.answer_text,
             QuestionId: questionId,
             UserId: existUser[0].id
         }
-    
+
         Answer.create(answer).then(ans => {
             res.status(201).send(ans);
         }).catch(err => {
@@ -44,12 +49,12 @@ exports.create = async (req, res) => {
             console.log(err);
         });
     }
-   else {
+    else {
         res.status(401).send({
             Message: "User is not authorized !"
         });
     }
-   
+
 
 }
 
@@ -99,20 +104,42 @@ exports.deleteAnswer = async (req, res) => {
 
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     if (existUser) {
-        await File.findOne({
+        await File.findAll({
             where:
             {
                 QuestionId: req.params.questionId,
-                AnswerId:req.params.answerId
+                AnswerId: req.params.answerId
             }
         }).then((file) => {
-
-            AWSFileUpload.deleteFileFromS3(file.id+file.file_name);
-            File.destroy({
-                where: {
-                    id: file.id,
+            if (file) {
+                
+                for (i = 0; i < file.length; i++) {
+                    let s3bucket = new AWS.S3({
+                       
+                        Bucket: bucketName
+                    });
+                
+                    const params = {
+                        Bucket: bucketName,
+                        Key: file[i].id+file[i].file_name
+                    }
+                
+                    s3bucket.deleteObject(params, function (err, data) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        else {
+                            console.log("sucess");
+                        }
+                    });
+                     File.destroy({
+                        where: {
+                            id: file[i].id,
+                        }
+                    })
                 }
-            })
+               
+            }
         })
 
         Answer.destroy({

@@ -10,9 +10,13 @@ const Catcontroller = require("./category-controller");
 const Usercontroller = require("./user-controller");
 const Anscontroller = require("./answer-controller");
 const AWSFileUpload = require("./aws-file-upload-controller");
+const s3Config = require("../../config/s3-config.js");
 const question_category = db.question_category
 const { v4: uuidv4 } = require('uuid');
 const File = db.file;
+require('dotenv').config()
+const bucketName = s3Config.bucketName;
+const AWS = require('../../config/aws-config.js');
 
 
 exports.createQues = (question) => {
@@ -257,19 +261,41 @@ exports.deleteQuestion = async (req, res) => {
 
         if (existAnswer.length <= 0) {
 
-            await File.findOne({
+            await File.findAll({
                 where:
                 {
                     QuestionId: questionId
                 }
             }).then((file) => {
-
-                AWSFileUpload.deleteFileFromS3(file.id+file.file_name);
-                File.destroy({
-                    where: {
-                        id: file.id,
+                if (file) {
+                    
+                    for (i = 0; i < file.length; i++) {
+                        let s3bucket = new AWS.S3({
+                           
+                            Bucket: bucketName
+                        });
+                    
+                        const params = {
+                            Bucket: bucketName,
+                            Key: file[i].id+file[i].file_name
+                        }
+                    
+                        s3bucket.deleteObject(params, function (err, data) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                                console.log("sucess");
+                            }
+                        });
+                         File.destroy({
+                            where: {
+                                id: file[i].id,
+                            }
+                        })
                     }
-                })
+                   
+                }
             })
 
             Question.destroy({
