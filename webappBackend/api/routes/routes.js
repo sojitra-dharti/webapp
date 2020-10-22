@@ -2,6 +2,7 @@ module.exports = app => {
   let userController = require('../controllers/user-controller.js');
   let quesController = require('../controllers/question-controller.js');
   let ansController = require('../controllers/answer-controller.js');
+  let fileController = require('../controllers/file-controller.js');
 
   // Create a new User
   app.post('/v1/user', userController.create);
@@ -34,4 +35,10 @@ module.exports = app => {
 
    app.delete('/v1/question/:questionId/answer/:answerId',ansController.deleteAnswer);
 
+   //File
+
+   app.post('/v1/question/:questionId/file', fileController.createFile)
+   app.post('/v1/question/:questionId/Answer/:answerId/file', fileController.createFile)
+   app.delete('/v1/question/:questionId/file/:fileId', fileController.deleteFile)
+   app.delete('/v1/question/:questionId/answer/:answerId/file/:fileId', fileController.deleteFile)
 };

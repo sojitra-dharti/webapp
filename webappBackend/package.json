@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.773.0",
     "axios": "^0.20.0",
     "basic-auth": "^2.0.1",
     "bcrypt": "^5.0.0",
@@ -19,15 +20,15 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-fileupload": "^1.2.0",
     "mocha": "^8.1.3",
     "mysql2": "^2.2.5",
+    "nock": "^13.0.4",
     "nodemon": "^2.0.4",
     "sequelize": "^6.3.5",
     "sequelize-auto": "^0.6.1",
     "should": "^13.2.3",
     "uuid": "^8.3.0"
   },
-  "devDependencies": {
-    "nock": "^13.0.4"
-  }
+  "devDependencies": {}
 }

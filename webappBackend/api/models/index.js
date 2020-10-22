@@ -24,6 +24,7 @@ db.question = require("./Question.js")(sequelize, Sequelize);
 db.category = require("./Category.js")(sequelize, Sequelize);
 db.answer = require("./Answer.js")(sequelize, Sequelize);
 db.question_category = require("./question_category.js")(sequelize, Sequelize);
+db.file = require("./File.js")(sequelize, Sequelize);
 
 //user has many questions.
 db.users.hasMany(db.question, { as: "questions" });
@@ -62,6 +63,19 @@ db.category.belongsToMany(db.question ,{
   foreignKey: "category_id",
 });
 
+
+//question has many files.
+db.question.hasMany(db.file, { as: "Questionfiles" });
+db.file.belongsTo(db.question, {
+  foreignKey: "QuestionId",
+  as: "questions",
+});
+//answer has many files.
+db.answer.hasMany(db.file, { as: "Answerfiles" });
+db.file.belongsTo(db.answer, {
+  foreignKey: "AnswerId",
+  as: "answers",
+});
 
   // db.questions.belongsToMany(db.category, {
   //     foreignKey:{
