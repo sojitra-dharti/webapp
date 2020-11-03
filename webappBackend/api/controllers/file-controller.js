@@ -95,7 +95,7 @@ exports.deleteFile = async (req, res) => {
         try {
             const existQues = await QuestionController.getQuestionByIdAndUserId(questionId, existUser[0].id);
             if (!existQues || existQues.length == 0) {
-                res.status(404).send({
+                return res.status(404).send({
                     Message: "question not found !"
                 });
             }

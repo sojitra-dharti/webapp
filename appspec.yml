@@ -1,0 +1,29 @@
+version: 0.0
+os: linux
+
+# giving permission to files and folders to centos user in home directory
+files:
+  - source: /
+    destination: /home/ubuntu/webapp
+
+hooks:
+  # applicationStop:
+  #   - location: scripts/app_stop.sh
+  #     timeout: 300
+    
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      timeout: 300
+      
+  AfterInstall:
+    - location: scripts/after_install.sh
+      timeout: 300
+
+  ApplicationStart:
+    - location: scripts/app_start.sh
+      timeout: 300
+
+  # ValidateService:
+  #   - location: scripts/validate_service.sh
+  #     timeout: 300
+  

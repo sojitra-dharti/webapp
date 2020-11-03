@@ -1,0 +1,53 @@
+name: Deploy build on push requests
+
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm run build --if-present
+    - run: npm test
+    - name: Build Deployment Artifact
+      run: | 
+        mkdir codedeploy_artifact
+        zip -r build_artifact .
+        pwd
+        mv build_artifact.zip codedeploy_artifact
+        ls -al
+        pwd
+        cd codedeploy_artifact
+        pwd
+        ls -al
+    - name: Configure AWS credentials from Test account
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Push artifact to s3
+      run: |
+        aws s3 sync ./codedeploy_artifact s3://codedeploy.dhartisojitra.me
+    - name: CodeDeploy API call
+      run: |
+        output=$(aws deploy create-deployment \
+          --application-name csye6225-webapp \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --deployment-group-name csye6225-webapp-deployment \
+          --description "CSYE6255 - CodeDeploy" \
+          --s3-location bucket=codedeploy.dhartisojitra.me,key=build_artifact.zip,bundleType=zip \
+          --region us-east-1 \
+          --output json)
+          echo $output
+          dId=$(echo $output | jq -r '.deploymentId')
+          aws deploy wait deployment-successful --deployment-id $dId
