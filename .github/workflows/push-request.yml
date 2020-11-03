@@ -34,7 +34,6 @@ jobs:
         cd codedeploy_artifact
         pwd
         ls -al
-      working-directory: ${{env.working-directory}}
     - name: Configure AWS credentials from Test account
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -44,7 +43,6 @@ jobs:
     - name: Push artifact to s3
       run: |
         aws s3 sync ./codedeploy_artifact s3://codedeploy.dev.dhartisojitra.me
-      working-directory: ${{env.working-directory}}
     - name: CodeDeploy API call
       run: |
         output=$(aws deploy create-deployment \
@@ -58,4 +56,4 @@ jobs:
           echo $output
           dId=$(echo $output | jq -r '.deploymentId')
           aws deploy wait deployment-successful --deployment-id $dId
-      working-directory: ${{env.working-directory}}
+      
