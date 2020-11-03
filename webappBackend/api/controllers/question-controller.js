@@ -100,7 +100,11 @@ exports.findAll = (req, res) => {
             },
             {
                 model: Answer,
-                as: "answers"
+                as: "answers",
+                include:[{
+                    model: File,
+                    as: "Answerfiles"
+                }]
             },
             {
                 model: File,
