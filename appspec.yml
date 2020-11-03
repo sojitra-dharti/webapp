@@ -12,15 +12,15 @@ hooks:
   #     timeout: 300
     
   BeforeInstall:
-    - location: ./scripts/before_install.sh
+    - location: ./codedeploy/before_install.sh
       timeout: 300
       
   AfterInstall:
-    - location: ./scripts/after_install.sh
+    - location: ./codedeploy/after_install.sh
       timeout: 300
 
   ApplicationStart:
-    - location: ./scripts/app_start.sh
+    - location: ./codedeploy/app_start.sh
       timeout: 300
 
   # ValidateService:
