@@ -42,7 +42,7 @@ jobs:
         aws-region: us-east-1
     - name: Push artifact to s3
       run: |
-        aws s3 sync ./codedeploy_artifact s3://codedeploy.dev.dhartisojitra.me
+        aws s3 sync ./codedeploy_artifact s3://${{ secrets.CODEDEPLOY_BUCKETNAME }}
     - name: CodeDeploy API call
       run: |
         output=$(aws deploy create-deployment \
@@ -50,7 +50,7 @@ jobs:
           --deployment-config-name CodeDeployDefault.AllAtOnce \
           --deployment-group-name csye6225-webapp-deployment \
           --description "CSYE6255 - CodeDeploy" \
-          --s3-location bucket=codedeploy.dev.dhartisojitra.me,key=build_artifact.zip,bundleType=zip \
+          --s3-location bucket=${{ secrets.CODEDEPLOY_BUCKETNAME }},key=build_artifact.zip,bundleType=zip \
           --region us-east-1 \
           --output json)
           echo $output
