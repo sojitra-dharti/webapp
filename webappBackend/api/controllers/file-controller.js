@@ -20,7 +20,7 @@ exports.createFile = async (req, res) => {
 
         const existQues = await QuestionController.getQuestionByIdAndUserId(questionId, existUser[0].id);
         if (!existQues || existQues.length == 0) {
-            res.status(404).send({
+            return res.status(404).send({
                 Message: "question not found !"
             });
         }
@@ -33,7 +33,7 @@ exports.createFile = async (req, res) => {
             res.status(400).send("File name invalid");
         }
         if(!file.name.match(/\.(jpg|jpeg|png)$/i)) {
-            res.status(400).send("User can upload only images !");
+            return res.status(400).send("User can upload only images !");
         }
 
         var metadata = {
