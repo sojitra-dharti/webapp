@@ -213,3 +213,19 @@ exports.updateAnswer = async (req, res) => {
     }
 }
 
+exports.getAnswerByIdAndUserId = (answerId, userId) => {
+    return Answer.findAll(
+        {
+            where:
+            {
+                id: answerId,
+                UserId: userId
+            }
+        })
+        .then(ans => {
+            return ans;
+        }).catch(err => {
+            console.log(err);
+        });
+}
+
