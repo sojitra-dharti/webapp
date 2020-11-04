@@ -27,13 +27,8 @@ jobs:
       run: | 
         mkdir codedeploy_artifact
         zip -r build_artifact .
-        pwd
         mv build_artifact.zip codedeploy_artifact
-        ls -al
-        pwd
         cd codedeploy_artifact
-        pwd
-        ls -al
     - name: Configure AWS credentials from Test account
       uses: aws-actions/configure-aws-credentials@v1
       with:
