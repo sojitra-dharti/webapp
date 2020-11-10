@@ -6,11 +6,18 @@ const User = db.users;
 const { v4: uuidv4 } = require('uuid');
 const RegexForEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const RegexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{9,20}$/;
+const UserMetrics = require('../../app-metrics/metrics');
+const timeController = require('../controllers/time-controller');
 
 // Create and Save a new User
 exports.create = (req, res) => {
+  
+  var apiStartTime = timeController.GetCurrentTime();
+  UserMetrics.increment('User.Create.ApiCount');
+
   var uuid = uuidv4();
   var dateval = new Date();
+ 
   dateval = dateval.toISOString();
   var first_name = req.body.first_name;
   var last_name = req.body.last_name;
@@ -45,6 +52,7 @@ exports.create = (req, res) => {
           last_name: req.body.last_name,
           password: hash
         };
+        var DBStartTime = timeController.GetCurrentTime();
         User.create(user)
           .then(data => {
             var user = {
@@ -55,10 +63,11 @@ exports.create = (req, res) => {
               account_updated: data.account_updated,
               account_created: data.account_created
             }
+            UserMetrics.timing('User.Create.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            UserMetrics.timing('User.Create.ApiTime', timeController.GetTimeDifference(apiStartTime));
             res.status(201).send(user);
           })
           .catch(err => {
-            console.log(err);
             res.status(400).send({
               Message: "User with this email_address already exists, please try with different email_address."
             });
@@ -71,6 +80,8 @@ exports.create = (req, res) => {
 //update user profile
 exports.update = (req, res) => {
 
+  var apiStartTime = timeController.GetCurrentTime();
+  UserMetrics.increment('User.Update.ApiCount');
   var userCredentials = auth(req);
   var id = req.body.id;
   var first_name = req.body.first_name;
@@ -110,7 +121,7 @@ exports.update = (req, res) => {
       if (valid) {
         bcrypt.genSalt(saltRounds, function (err, salt) {
           bcrypt.hash(req.body.password, salt, function (err, hash) {
-
+           var DBStartTime = timeController.GetCurrentTime();
             User.update({
               first_name: first_name,
               last_name: last_name,
@@ -121,6 +132,8 @@ exports.update = (req, res) => {
             })
               .then(num => {
                 if (num == 1) {
+                  UserMetrics.timing('User.Update.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+                  UserMetrics.timing('User.Update.ApiTime', timeController.GetTimeDifference(apiStartTime));
                   console.log("User updated successfully");
                   res.status(204).end();
                 } else {
@@ -148,10 +161,14 @@ exports.update = (req, res) => {
 
 //get user information
 exports.view = (req, res) => {
+  var apiStartTime = timeController.GetCurrentTime();
+  UserMetrics.increment('User.View.ApiCount');
+
   var userCredentials = auth(req);
   var username = userCredentials.name;
   var password = userCredentials.pass;
 
+  var DBStartTime = timeController.GetCurrentTime();
   User.findAll({
     where: {
       email_address: username
@@ -169,6 +186,8 @@ exports.view = (req, res) => {
         attributes: ['id', 'first_name', 'last_name', 'email_address', 'account_created', 'account_updated'],
 
       }).then(function (result) {
+        UserMetrics.timing('User.View.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+        UserMetrics.timing('User.View.ApiTime', timeController.GetTimeDifference(apiStartTime));
         res.send(result);
       })
         .catch(err => {
@@ -201,6 +220,7 @@ exports.findByName = (username) => {
 
 // checks if user is authorized
 exports.IsValid = (username, password) => {
+
   return User.findAll({
     where: {
       email_address: username
@@ -225,6 +245,12 @@ exports.IsValid = (username, password) => {
 }
 
 exports.viewById = (req, res) => {
+  var apiStartTime = timeController.GetCurrentTime();
+  UserMetrics.increment('User.ViewById.ApiCount');
+
+  var DBStartTime = timeController.GetCurrentTime();
+
+
   User.findAll(
     {
       where: {
@@ -236,6 +262,8 @@ exports.viewById = (req, res) => {
           Message: "not found!"
         })
       }
+      UserMetrics.timing('User.ViewById.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+      UserMetrics.timing('User.ViewById.ApiTime', timeController.GetTimeDifference(apiStartTime));
       res.send(result);
     }).catch(err => {
       console.log(err);
