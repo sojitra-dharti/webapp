@@ -12,9 +12,9 @@ const logger = winston.createLogger({
     logGroupName: 'csye6225',
     logStreamName: 'webapp',
     awsAccessKeyId: '${{ secrets.AWS_ACCESS_KEY_ID }}',
-    awsSecretKey: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'
+    awsSecretKey: '${{ secrets.AWS_SECRET_ACCESS_KEY }}',
+    messageFormatter: ({ level, message, additionalInfo }) =>    `[${level}] : ${message} \nAdditional Info: ${JSON.stringify(additionalInfo)}}`
 }
-logger.add(new WinstonCloudWatch(cloudwatchConfig))
-
+    logger.add(new WinstonCloudWatch(cloudwatchConfig))
 
 module.exports = logger;

@@ -13,6 +13,7 @@ const logger = require('../../config/logger-config');
 // Create and Save a new User
 exports.create = (req, res) => {
   logger.info('Information message');
+  logger.log('info', `Requesting ${req.method} ${req.originalUrl}`, {tags: 'http', additionalInfo: {body: req.body, headers: req.headers }});
   var apiStartTime = timeController.GetCurrentTime();
   console.log(apiStartTime);
   UserMetrics.increment('User.Create.ApiCount');
