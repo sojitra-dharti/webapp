@@ -1,20 +1,12 @@
-const winston = require('winston');
-const WinstonCloudWatch = require('winston-cloudwatch');
- 
-const logger = winston.createLogger({
-    level: 'info',
-    transports: [
-      new winston.transports.File({ filename: '/opt/csye6225.log' })
-    ]
+'use strict';
+
+const log4js = require('log4js');
+let level =log4js.levels.INFO.levelStr;
+   
+log4js.configure({
+    appenders: { 'file': { type: 'file', filename: '/opt/csye6225.log' } },
+    categories: { default: { appenders: ['file'], level } }
   });
 
-  const cloudwatchConfig = {
-    logGroupName: 'csye6225',
-    logStreamName: 'webapp',
-    awsAccessKeyId: '${{ secrets.AWS_ACCESS_KEY_ID }}',
-    awsSecretKey: '${{ secrets.AWS_SECRET_ACCESS_KEY }}',
-    messageFormatter: ({ level, message, additionalInfo }) =>    `[${level}] : ${message} \nAdditional Info: ${JSON.stringify(additionalInfo)}}`
-}
-    logger.add(new WinstonCloudWatch(cloudwatchConfig))
 
-module.exports = logger;
+module.exports = log4js.getLogger('file');
