@@ -15,7 +15,7 @@ const Logger = log4js.getLogger('logs');
 exports.create = (req, res) => {
  
   Logger.info('This is log4js test');
-   var apiStartTime = timeController.GetCurrentTime();
+  var apiStartTime = timeController.GetCurrentTime();
   console.log(apiStartTime);
   UserMetrics.increment('User.Create.ApiCount');
 
