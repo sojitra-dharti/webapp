@@ -1,15 +1,10 @@
 const db = require("../models");
-const bcrypt = require('bcrypt');
-const auth = require('basic-auth');
-const saltRounds = 10;
 const Category = db.category;
 const Question = db.question;
 const Answer = db.answer;
-const UserCategory = db.usercategory;
 const Catcontroller = require("./category-controller");
 const Usercontroller = require("./user-controller");
 const Anscontroller = require("./answer-controller");
-const AWSFileUpload = require("./aws-file-upload-controller");
 const s3Config = require("../../config/s3-config.js");
 const question_category = db.question_category
 const { v4: uuidv4 } = require('uuid');
@@ -17,12 +12,16 @@ const File = db.file;
 require('dotenv').config()
 const bucketName = s3Config.bucketName;
 const AWS = require('../../config/aws-config.js');
+const Metrics = require('../../config/metrics-config');
+const timeController = require('../controllers/time-controller');
 
 
 exports.createQues = (question) => {
+    var DBStartTime = timeController.GetCurrentTime();
     return Question.create(question)
         .then((ques) => {
             console.log(">> Created Question: " + ques);
+            Metrics.timing('Question.Create.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
             return ques;
         })
         .catch((err) => {
@@ -32,6 +31,8 @@ exports.createQues = (question) => {
 
 
 exports.create = async (req, res) => {
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Question.Create.ApiCount');
 
     var uuid = uuidv4();
     var currentDate = new Date();
@@ -79,6 +80,8 @@ exports.create = async (req, res) => {
             }).catch((err) => {
                 console.log(">> Error while retrieving questions: ", err);
             });
+    
+        Metrics.timing('Question.Create.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
         res.send(ques[0]);
 
     }
@@ -89,6 +92,12 @@ exports.create = async (req, res) => {
     }
 };
 exports.findAll = (req, res) => {
+
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Question.View.ApiCount');
+  
+    var DBStartTime = timeController.GetCurrentTime();
+
     return Question.findAll({
         include: [
             {
@@ -113,6 +122,8 @@ exports.findAll = (req, res) => {
         ],
     })
         .then((questions) => {
+            Metrics.timing('Question.View.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Question.View.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
             res.send(questions);
         })
         .catch((err) => {
@@ -131,6 +142,11 @@ exports.ifQuesExists = (id) => {
 }
 
 exports.getQuestionById = (req, res) => {
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Question.ViewById.ApiCount');
+  
+    var DBStartTime = timeController.GetCurrentTime();
+
     return Question.findAll(
         {
             where:
@@ -153,8 +169,10 @@ exports.getQuestionById = (req, res) => {
             ],
         })
         .then(ques => {
+            Metrics.timing('Question.ViewById.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Question.ViewById.ApiTime', timeController.GetTimeDifference(apiStartTime));
             res.status(200).send(ques);
-        }).catch(err => {
+        }).catch(() => {
             res.status(404).send({
                 Message: "Question not found"
             });
@@ -163,6 +181,11 @@ exports.getQuestionById = (req, res) => {
 }
 
 exports.updateQuestion = async (req, res) => {
+
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Question.Update.ApiCount');
+  
+  
 
     var currentDate = new Date();
     var questiontext = req.body.question_text;
@@ -198,7 +221,7 @@ exports.updateQuestion = async (req, res) => {
 
         }
         if (questiontext) {
-
+            var DBStartTime = timeController.GetCurrentTime();
             await Question.update({
                 question_text: questiontext,
                 updated_timestamp: currentDate
@@ -210,12 +233,15 @@ exports.updateQuestion = async (req, res) => {
                 }
             })
                 .then(result => {
+                    Metrics.timing('Question.Update.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+                    Metrics.timing('Question.Update.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
                     if (result == 0) {
                         res.status(404).send({
                             Message: "Question not found for this user !"
                         })
                     }
                     else {
+
                         res.status(204).send({
                             Message: "question rows updated" + result
                         });
@@ -256,6 +282,8 @@ exports.getQuestionByIdAndUserId = (questionId, userId) => {
 }
 
 exports.deleteQuestion = async (req, res) => {
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Question.Delete.ApiCount');
 
     var questionId = req.params.questionId;
 
@@ -283,8 +311,9 @@ exports.deleteQuestion = async (req, res) => {
                             Bucket: bucketName,
                             Key: file[i].id+file[i].file_name
                         }
-                    
-                        s3bucket.deleteObject(params, function (err, data) {
+                        var S3StartTime = timeController.GetCurrentTime();
+                        s3bucket.deleteObject(params, function (err) {
+                            Metrics.timing('File.S3Bucket.DeleteFile.Time', timeController.GetTimeDifference(S3StartTime)); 
                             if (err) {
                                 console.log(err);
                             }
@@ -301,7 +330,7 @@ exports.deleteQuestion = async (req, res) => {
                    
                 }
             })
-
+            var DBStartTime = timeController.GetCurrentTime();
             Question.destroy({
                 where:
                 {
@@ -309,6 +338,9 @@ exports.deleteQuestion = async (req, res) => {
                     UserId: existUser[0].id
                 }
             }).then((result) => {
+                Metrics.timing('Question.Delete.DbQueryTime', timeController.GetTimeDifference(DBStartTime)); 
+                Metrics.timing('Question.Delete.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
+                    
                 if (result == 0) {
                     res.status(404).send({
                         Message: "Question not found"

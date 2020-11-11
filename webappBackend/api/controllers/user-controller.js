@@ -6,13 +6,15 @@ const User = db.users;
 const { v4: uuidv4 } = require('uuid');
 const RegexForEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const RegexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{9,20}$/;
-const UserMetrics = require('../../app-metrics/metrics');
+const UserMetrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
+const logger = require('../../config/logger-config');
 
 // Create and Save a new User
 exports.create = (req, res) => {
-  
+  logger.info('Information message');
   var apiStartTime = timeController.GetCurrentTime();
+  console.log(apiStartTime);
   UserMetrics.increment('User.Create.ApiCount');
 
   var uuid = uuidv4();
@@ -63,6 +65,8 @@ exports.create = (req, res) => {
               account_updated: data.account_updated,
               account_created: data.account_created
             }
+            console.log(apiStartTime);
+            console.log(timeController.GetTimeDifference(apiStartTime));
             UserMetrics.timing('User.Create.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
             UserMetrics.timing('User.Create.ApiTime', timeController.GetTimeDifference(apiStartTime));
             res.status(201).send(user);

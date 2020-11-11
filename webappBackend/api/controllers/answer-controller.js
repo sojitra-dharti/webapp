@@ -8,6 +8,8 @@ const Answer = db.answer;
 const File = db.file;
 const AWSFileUpload = require("./aws-file-upload-controller");
 const s3Config = require("../../config/s3-config.js");
+const Metrics = require('../../config/metrics-config');
+const timeController = require('../controllers/time-controller');
 
 require('dotenv').config()
 const bucketName = s3Config.bucketName;

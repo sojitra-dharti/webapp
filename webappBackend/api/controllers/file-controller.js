@@ -6,15 +6,19 @@ const AWSFileUpload = require("./aws-file-upload-controller");
 const QuestionController = require("./question-controller");
 const AnswerController = require("./answer-controller");
 const File = db.file;
+const Metrics = require('../../config/metrics-config');
+const timeController = require('../controllers/time-controller');
 
 exports.createFile = async (req, res) => {
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('File.Create.ApiCount');
 
     var currentDate = new Date();
     var uuid = uuidv4();
     var questionId = req.params.questionId;
     var answerId = req.params.answerId;
 
-
+   
 
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     if (existUser) {
@@ -78,17 +82,21 @@ exports.createFile = async (req, res) => {
                 QuestionId: questionId
             };
         }
-
-        const filecreated = await File.create(filedata).catch(err => {
+        var DBStartTime = timeController.GetCurrentTime();
+        const filecreated = await File.create(filedata).then(()=>{
+            Metrics.timing('File.Create.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+        }).catch(err => {
             res.send(err);
         });
-        const isFileUploaded = await AWSFileUpload.uploadFileToS3(file, uuid + file.name).catch(err => {
+        var DBS3StartTime = timeController.GetCurrentTime();
+        const isFileUploaded = await AWSFileUpload.uploadFileToS3(file, uuid + file.name).then(()=>{
+            Metrics.timing('File.S3Bucket.CreateFile.Time', timeController.GetTimeDifference(DBS3StartTime));
+        }).catch(err => {
             res.send("error in uploading file to S3");
         });
 
+        Metrics.timing('File.Create.ApiTime', timeController.GetTimeDifference(apiStartTime));
         res.status(200).send({ Message: "File uploaded" });
-
-
     }
     else {
         res.status(401).send({
@@ -98,6 +106,8 @@ exports.createFile = async (req, res) => {
 }
 
 exports.deleteFile = async (req, res) => {
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('File.Delete.ApiCount');
 
     var questionId = req.params.questionId;
     var answerId = req.params.answerId;
@@ -123,14 +133,20 @@ exports.deleteFile = async (req, res) => {
                 }
             }
             await File.findByPk(fileId).then((file) => {
-
+                
+                var DBS3StartTime = timeController.GetCurrentTime();
                 AWSFileUpload.deleteFileFromS3(fileId + file.file_name);
+                Metrics.timing('File.S3Bucket.DeleteFile.Time', timeController.GetTimeDifference(DBS3StartTime));
+                
+                var DBStartTime = timeController.GetCurrentTime();
                 File.destroy({
                     where: {
                         id: fileId,
                     }
                 })
+                Metrics.timing('File.Delete.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
             })
+            Metrics.timing('File.Delete.ApiTime', timeController.GetTimeDifference(apiStartTime));
             res.status(200).send({ Message: "File deleted!" });
         }
 
