@@ -101,7 +101,7 @@ exports.findAll = (req, res) => {
 
     var apiStartTime = timeController.GetCurrentTime();
     Metrics.increment('Question.View.ApiCount');
-  
+    logger.info('Get all questions');
     var DBStartTime = timeController.GetCurrentTime();
 
     return Question.findAll({
@@ -138,6 +138,7 @@ exports.findAll = (req, res) => {
 };
 
 exports.ifQuesExists = (id) => {
+    logger.info('checking if question exists');
     return Question.count({ where: { id: id } })
         .then(count => {
             if (count == 0) {
@@ -150,7 +151,7 @@ exports.ifQuesExists = (id) => {
 exports.getQuestionById = (req, res) => {
     var apiStartTime = timeController.GetCurrentTime();
     Metrics.increment('Question.ViewById.ApiCount');
-  
+    logger.info('get question by Id');
     var DBStartTime = timeController.GetCurrentTime();
 
     return Question.findAll(
@@ -179,6 +180,7 @@ exports.getQuestionById = (req, res) => {
             Metrics.timing('Question.ViewById.ApiTime', timeController.GetTimeDifference(apiStartTime));
             res.status(200).send(ques);
         }).catch(() => {
+            logger.error('Question not found');
             res.status(404).send({
                 Message: "Question not found"
             });
@@ -190,7 +192,7 @@ exports.updateQuestion = async (req, res) => {
 
     var apiStartTime = timeController.GetCurrentTime();
     Metrics.increment('Question.Update.ApiCount');
-  
+    logger.info('Updating question');
   
 
     var currentDate = new Date();
@@ -242,6 +244,7 @@ exports.updateQuestion = async (req, res) => {
                     Metrics.timing('Question.Update.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
                     Metrics.timing('Question.Update.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
                     if (result == 0) {
+                        logger.error('Question not found for this user');
                         res.status(404).send({
                             Message: "Question not found for this user !"
                         })
@@ -258,6 +261,7 @@ exports.updateQuestion = async (req, res) => {
         res.status(204).send();
     }
     else {
+        logger.error('User is not for this question');
         res.status(401).send({
             Message: "unauthorized"
         });
@@ -290,7 +294,7 @@ exports.getQuestionByIdAndUserId = (questionId, userId) => {
 exports.deleteQuestion = async (req, res) => {
     var apiStartTime = timeController.GetCurrentTime();
     Metrics.increment('Question.Delete.ApiCount');
-
+    logger.info('Deleting question');
     var questionId = req.params.questionId;
 
     const existUser = await Usercontroller.IsAuthenticated(req, res);
@@ -321,10 +325,10 @@ exports.deleteQuestion = async (req, res) => {
                         s3bucket.deleteObject(params, function (err) {
                             Metrics.timing('File.S3Bucket.DeleteFile.Time', timeController.GetTimeDifference(S3StartTime)); 
                             if (err) {
-                                console.log(err);
+                                logger.error('Error in file upload');
                             }
                             else {
-                                console.log("sucess");
+                                logger.info('file uploaded');
                             }
                         });
                          File.destroy({
@@ -348,10 +352,13 @@ exports.deleteQuestion = async (req, res) => {
                 Metrics.timing('Question.Delete.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
                     
                 if (result == 0) {
+                    logger.error('Question not found');
+
                     res.status(404).send({
                         Message: "Question not found"
                     });
                 }
+                logger.info('Question deleted');
                 res.status(204).send({
                     Message: "Question deleted"
                 });
@@ -359,6 +366,7 @@ exports.deleteQuestion = async (req, res) => {
                 .catch(err => { console.log(err) })
         }
         else {
+            logger.info('question with one or more answers can not be deleted !');
             res.status(400).send({
                 Message: "question with one or more answers can not be deleted !"
             });
