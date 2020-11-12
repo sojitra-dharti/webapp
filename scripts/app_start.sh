@@ -11,4 +11,4 @@ else
     sudo chmod 666 logs/csye6225.log
 fi
 
-sudo nohup node server.js >> debug.log 2>&1 
+sudo nohup node server.js >> debug.log 2>&1 &
