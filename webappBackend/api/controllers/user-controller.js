@@ -8,19 +8,14 @@ const RegexForEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const RegexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{9,20}$/;
 const UserMetrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
-// var log4js = require('../../logger-config');
-var log4js = require('log4js');
-    log4js.configure({
-        appenders: { logs: { type: 'file', filename: '../csye6225.log' }},
-        categories: { default: { appenders: ['logs'], level: 'info' }}
-    });
-const Logger = log4js.getLogger('logs');
+var log4js = require('../../config/log4js');
+const logger = log4js.getLogger('logs');
 
 
 // Create and Save a new User
 exports.create = (req, res) => {
  
-  Logger.info('This is log4js test');
+  logger.info('This is log4js test');
   var apiStartTime = timeController.GetCurrentTime();
   console.log(apiStartTime);
   UserMetrics.increment('User.Create.ApiCount');
@@ -173,7 +168,7 @@ exports.update = (req, res) => {
 
 //get user information
 exports.view = (req, res) => {
-  Logger.info('This is log4js View');
+  logger.info('This is log4js View');
   var apiStartTime = timeController.GetCurrentTime();
   UserMetrics.increment('User.View.ApiCount');
 
