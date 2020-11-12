@@ -13,5 +13,5 @@ fi
 
 
 sudo chown ubuntu /home/ubuntu/webapp/webappBackend
-sudo chown ubuntu /home/ubuntu/webapp/webappBackend/logs
-sudo chown ubuntu /home/ubuntu/webapp/webappBackend/logs/csye6225.log
+sudo chown ubuntu /home/ubuntu/webapp/webappBackend
+sudo chown ubuntu /home/ubuntu/webapp/webappBackend/csye6225.log
