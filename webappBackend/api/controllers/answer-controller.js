@@ -14,9 +14,14 @@ const timeController = require('../controllers/time-controller');
 require('dotenv').config()
 const bucketName = s3Config.bucketName;
 const AWS = require('../../config/aws-config.js');
+var log4js = require('../../config/log4js');
+const logger = log4js.getLogger('logs');
 
 exports.create = async (req, res) => {
-
+    logger.info('Creating Answer');
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.Create.ApiCount');
+    
     var answer_text = req.body.answer_text;
     var questionId = req.params.questionId;
     var uuid = uuidv4();
@@ -41,10 +46,13 @@ exports.create = async (req, res) => {
             QuestionId: questionId,
             UserId: existUser[0].id
         }
-
+        var DBStartTime = timeController.GetCurrentTime();
         Answer.create(answer).then(ans => {
+            Metrics.timing('Answer.Create.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Answer.Create.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
             res.status(201).send(ans);
         }).catch(err => {
+            logger.info('Error in creating answer' + err);
             res.send({
                 Message: "Error in creating answer"
             });
@@ -52,6 +60,8 @@ exports.create = async (req, res) => {
         });
     }
     else {
+        logger.error('User is not authorized !');
+       
         res.status(401).send({
             Message: "User is not authorized !"
         });
@@ -61,6 +71,9 @@ exports.create = async (req, res) => {
 }
 
 exports.getAnswerById = (req, res) => {
+    logger.info('Getting answer by Id');
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.ViewById.ApiCount');
 
     // validation for mandatory question and answerid else bad 404
     if (!req.params.questionId || !req.params.answerId) {
@@ -68,7 +81,7 @@ exports.getAnswerById = (req, res) => {
             Message: "questionid and answerid required !"
         })
     }
-
+    var DBStartTime = timeController.GetCurrentTime();
     return Answer.findAll(
         {
             where:
@@ -78,8 +91,11 @@ exports.getAnswerById = (req, res) => {
             }
         })
         .then(ques => {
+            Metrics.timing('Answer.ViewById.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Answer.ViewById.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
             res.status(200).send(ques);
         }).catch(err => {
+            logger.error('Error in fetching answer by Id');
             res.status(404).send({
                 Message: "Answer not found"
             });
@@ -103,7 +119,9 @@ exports.getAnswerByQuesId = (quesId) => {
 }
 
 exports.deleteAnswer = async (req, res) => {
-
+    logger.info('Deleting Answer');
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.Delete.ApiCount');
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     if (existUser) {
         await File.findAll({
@@ -125,9 +143,11 @@ exports.deleteAnswer = async (req, res) => {
                         Bucket: bucketName,
                         Key: file[i].id+file[i].file_name
                     }
-                
+                    var S3StartTime = timeController.GetCurrentTime();
                     s3bucket.deleteObject(params, function (err, data) {
+                        Metrics.timing('File.S3Bucket.DeleteFile.Time', timeController.GetTimeDifference(S3StartTime)); 
                         if (err) {
+                            logger.error('Error in uploading file to s3' + err);
                             console.log(err);
                         }
                         else {
@@ -143,7 +163,7 @@ exports.deleteAnswer = async (req, res) => {
                
             }
         })
-
+        var DBStartTime = timeController.GetCurrentTime();
         Answer.destroy({
             where:
             {
@@ -152,14 +172,20 @@ exports.deleteAnswer = async (req, res) => {
                 UserId: existUser[0].id
             }
         }).then((result) => {
+            logger.info('Answer Deleted');
+            Metrics.timing('Answer.Delete.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Answer.Delete.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
             if (result == 0) {
                 res.status(404).send({
                     Message: "Answer not found !"
                 });
             }
             res.status(204).send();
-        }).catch(err => { res.status(204).send() })
+        }).catch(err => { 
+            logger.error('Error in deleting answer' + err);
+            res.status(204).send() })
     } else {
+        logger.error('User is unauthorized');
         res.status(401).send({
             Message: "user unauthorized"
         });
@@ -167,7 +193,9 @@ exports.deleteAnswer = async (req, res) => {
 }
 
 exports.updateAnswer = async (req, res) => {
-
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.Update.ApiCount');
+    logger.info('Updating Answer');
     var currentDate = new Date();
     var answertext = req.body.answer_text;
     var questionId = req.params.questionId;
@@ -183,6 +211,7 @@ exports.updateAnswer = async (req, res) => {
     const existUser = await Usercontroller.IsAuthenticated(req, res);
     console.log(existUser[0].id);
     if (existUser) {
+        var DBStartTime = timeController.GetCurrentTime();
         Answer.update({
             answer_text: answertext,
             updated_timestamp: currentDate,
@@ -195,12 +224,15 @@ exports.updateAnswer = async (req, res) => {
             }
         })
             .then((result) => {
+                Metrics.timing('Answer.Update.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+                Metrics.timing('Answer.Update.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
                 if (result == 0) {
                     res.status(404).send({
                         Message: "User can only update their own answers"
                     });
                 }
                 else {
+                    logger.error('Error in Updating Answer');
                     res.send(204);
                     console.log({
                         Message: "Answer updated" + result
@@ -209,6 +241,7 @@ exports.updateAnswer = async (req, res) => {
             });
     }
     else {
+        logger.error('User is unauthorized for updating answer');
         res.status(401).send({
             Message: "unauthorized"
         });
