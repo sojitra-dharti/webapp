@@ -8,7 +8,7 @@ const RegexForEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const RegexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{9,20}$/;
 const UserMetrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
-var log4js = require('../../config/logger-config');
+var log4js = require('../../logger-config');
 const Logger = log4js.getLogger('logs');
 
 // Create and Save a new User
@@ -167,6 +167,7 @@ exports.update = (req, res) => {
 
 //get user information
 exports.view = (req, res) => {
+  Logger.info('This is log4js View');
   var apiStartTime = timeController.GetCurrentTime();
   UserMetrics.increment('User.View.ApiCount');
 
