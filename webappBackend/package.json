@@ -25,7 +25,6 @@
     "mocha": "^8.1.3",
     "mysql2": "^2.2.5",
     "nock": "^13.0.4",
-    "node-statsd": "^0.1.1",
     "nodemon": "^2.0.4",
     "sequelize": "^6.3.5",
     "sequelize-auto": "^0.6.1",
