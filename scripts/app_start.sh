@@ -1,5 +1,8 @@
 #!/bin/bash
 
+sudo chmod 777 /home/ubuntu/webapp
+sudo chmod 777 /home/ubuntu/webapp/webappBackend
+
 cd /home/ubuntu/webapp/webappBackend
 
 if [ -d "logs" ] 
