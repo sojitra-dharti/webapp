@@ -15,7 +15,7 @@ const logger = log4js.getLogger('logs');
 // Create and Save a new User
 exports.create = (req, res) => {
  
-  logger.info('This is log4js test');
+  logger.info('Creating User');
   var apiStartTime = timeController.GetCurrentTime();
   console.log(apiStartTime);
   UserMetrics.increment('User.Create.ApiCount');
@@ -75,6 +75,7 @@ exports.create = (req, res) => {
             res.status(201).send(user);
           })
           .catch(err => {
+            logger.error('error in creating user ' + err);
             res.status(400).send({
               Message: "User with this email_address already exists, please try with different email_address."
             });
@@ -86,7 +87,7 @@ exports.create = (req, res) => {
 
 //update user profile
 exports.update = (req, res) => {
-
+  logger.info('Updating User');
   var apiStartTime = timeController.GetCurrentTime();
   UserMetrics.increment('User.Update.ApiCount');
   var userCredentials = auth(req);
@@ -160,7 +161,7 @@ exports.update = (req, res) => {
         res.end({ Message: 'Access denied'})
       }
     }).catch(function (err) {
-      console.log(err);
+      logger.error('error in updating user ' + err);
     });
   }
 
@@ -168,7 +169,7 @@ exports.update = (req, res) => {
 
 //get user information
 exports.view = (req, res) => {
-  logger.info('This is log4js View');
+  logger.info('Fetching all users');
   var apiStartTime = timeController.GetCurrentTime();
   UserMetrics.increment('User.View.ApiCount');
 
@@ -207,11 +208,12 @@ exports.view = (req, res) => {
       res.status(401).end('Access denied')
     }
   }).catch(function (err) {
-    console.log(err);
+    logger.error('error in fetching user ' + err);
   });
 }
 
 exports.findByName = (username) => {
+  logger.info('Get user by username');
   return User.findAll({
     where: {
       email_address: username
@@ -253,6 +255,7 @@ exports.IsValid = (username, password) => {
 }
 
 exports.viewById = (req, res) => {
+  logger.info('Get user by user id');
   var apiStartTime = timeController.GetCurrentTime();
   UserMetrics.increment('User.ViewById.ApiCount');
 

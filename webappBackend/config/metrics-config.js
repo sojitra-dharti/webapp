@@ -57,6 +57,25 @@ var SDC = require('statsd-client'),
   sdc.timing('File.S3Bucket.CreateFile.Time');
 
 
+//******************* ANSWER APIs *******************
+
+sdc.timing('Answer.Create.ApiTime');
+sdc.timing('Answer.Update.ApiTime');
+sdc.timing('Answer.View.ApiTime');
+sdc.timing('Answer.ViewById.ApiTime');
+sdc.timing('Answer.Delete.ApiTime');
+
+sdc.timing('Answer.Create.DbQueryTime');
+sdc.timing('Answer.Update.DbQueryTime');
+sdc.timing('Answer.View.DbQueryTime');
+sdc.timing('Answer.ViewById.DbQueryTime');
+sdc.timing('Answer.Delete.DbQueryTime');
+
+sdc.increment('Answer.Create.ApiCount');
+sdc.increment('Answer.Update.ApiCount');
+sdc.increment('Answer.View.ApiCount');
+sdc.increment('Answer.Delete.ApiCount');
+sdc.increment('Answer.ViewById.ApiCount');
 
   module.exports = sdc;
 

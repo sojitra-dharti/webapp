@@ -14,9 +14,12 @@ const bucketName = s3Config.bucketName;
 const AWS = require('../../config/aws-config.js');
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
+var log4js = require('../../config/log4js');
+const logger = log4js.getLogger('logs');
 
 
 exports.createQues = (question) => {
+    logger.info('Creating question');
     var DBStartTime = timeController.GetCurrentTime();
     return Question.create(question)
         .then((ques) => {
@@ -33,6 +36,7 @@ exports.createQues = (question) => {
 exports.create = async (req, res) => {
     var apiStartTime = timeController.GetCurrentTime();
     Metrics.increment('Question.Create.ApiCount');
+    logger.info('Creating question');
 
     var uuid = uuidv4();
     var currentDate = new Date();
@@ -78,6 +82,7 @@ exports.create = async (req, res) => {
                     },
                 ],
             }).catch((err) => {
+                logger.error('Error while retrieving questions');
                 console.log(">> Error while retrieving questions: ", err);
             });
     
@@ -86,6 +91,7 @@ exports.create = async (req, res) => {
 
     }
     else {
+        logger.error('user unauthorized');
         res.status(401).send({
             Message: "user unauthorized"
         });

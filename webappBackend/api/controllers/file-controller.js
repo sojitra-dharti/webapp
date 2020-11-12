@@ -8,11 +8,14 @@ const AnswerController = require("./answer-controller");
 const File = db.file;
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
+var log4js = require('../../config/log4js');
+const logger = log4js.getLogger('logs');
+
 
 exports.createFile = async (req, res) => {
     var apiStartTime = timeController.GetCurrentTime();
     Metrics.increment('File.Create.ApiCount');
-
+    logger.info('Creating File');
     var currentDate = new Date();
     var uuid = uuidv4();
     var questionId = req.params.questionId;
@@ -26,6 +29,7 @@ exports.createFile = async (req, res) => {
         if (questionId && !answerId) {
             const existQues = await QuestionController.getQuestionByIdAndUserId(questionId, existUser[0].id);
             if (!existQues || existQues.length == 0) {
+                logger.error ('Question for this user is not found !');
                 return res.status(404).send({
                     Message: "Question for this user is not found !"
                 });
@@ -34,6 +38,7 @@ exports.createFile = async (req, res) => {
         else {
             const existAns = await AnswerController.getAnswerByIdAndUserId(answerId, existUser[0].id);
             if (!existAns || existAns.length == 0) {
+                logger.error ('Answer for this user is not found ');
                 return res.status(404).send({
                     Message: "Answer for this user is not found !"
                 });
@@ -92,6 +97,7 @@ exports.createFile = async (req, res) => {
         const isFileUploaded = await AWSFileUpload.uploadFileToS3(file, uuid + file.name).then(()=>{
             Metrics.timing('File.S3Bucket.CreateFile.Time', timeController.GetTimeDifference(DBS3StartTime));
         }).catch(err => {
+            logger.error('error in uploading file to S3');
             res.send("error in uploading file to S3");
         });
 
@@ -99,6 +105,7 @@ exports.createFile = async (req, res) => {
         res.status(200).send({ Message: "File uploaded" });
     }
     else {
+        logger.error('user is unauthorized');
         res.status(401).send({
             Message: "unauthorized"
         });
