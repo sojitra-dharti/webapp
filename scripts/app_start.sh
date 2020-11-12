@@ -7,6 +7,7 @@ then
     echo "Directory /home/ubuntu/webapp/webappBackend/logs exists." 
 else
     sudo mkdir -p logs
+    sudo chmod 666 logs
     sudo touch logs/csye6225.log
     sudo chmod 666 logs/csye6225.log
 fi
