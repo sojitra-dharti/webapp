@@ -23,11 +23,7 @@ var routes = require('./api/routes/routes');
 routes(app);
 
 //to sync database
-models.sequelize.sync(
-    {
-        force: true
-    }
-).then(function () {
+models.sequelize.sync().then(function () {
     app.listen(port);
     console.log('API server started on: ' + port);
 });
