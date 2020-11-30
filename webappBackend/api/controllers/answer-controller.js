@@ -73,7 +73,9 @@ exports.create = async (req, res) => {
             // Handle promise's fulfilled/rejected states
             publishTextPromise.then(
               function(data) {
-                console.log(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                logger.info(`Message ${params.Message.email}`);
+                
                 console.log("MessageID is " + data.MessageId);
                 
               }).catch(
