@@ -62,7 +62,7 @@ exports.create = async (req, res) => {
                         "updated_timestamp": ans.updated_timestamp,
                         "user_id": ans.UserId,
                         "answer_text": ans.answer_text,
-                        "email":existUser[0].id
+                        "email":existUser[0].email_address
                     }),
                 }), /* required */
               TopicArn: 'arn:aws:sns:us-east-1:952934740739:email_request'
