@@ -11,12 +11,13 @@ const s3Config = require("../../config/s3-config.js");
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
 
+
 require('dotenv').config()
 const bucketName = s3Config.bucketName;
 const AWS = require('../../config/aws-config.js');
 var log4js = require('../../config/log4js');
 const logger = log4js.getLogger('logs');
-
+const sns = new AWS.SNS({apiVersion: '2010-03-31'});
 exports.create = async (req, res) => {
     logger.info('Creating Answer');
     var apiStartTime = timeController.GetCurrentTime();
@@ -50,6 +51,39 @@ exports.create = async (req, res) => {
         Answer.create(answer).then(ans => {
             Metrics.timing('Answer.Create.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
             Metrics.timing('Answer.Create.ApiTime', timeController.GetTimeDifference(apiStartTime)); 
+            // Send SNS topic
+            var params = {
+                MessageStructure: 'json',
+                Message: JSON.stringify({
+                        "default": JSON.stringify({
+                        "answer_id": ans.id,
+                        "question_id": ans.QuestionId,
+                        "created_timestamp": ans.created_timestamp,
+                        "updated_timestamp": ans.updated_timestamp,
+                        "user_id": ans.UserId,
+                        "answer_text": ans.answer_text,
+                        "email":existUser[0].id
+                    }),
+                }), /* required */
+              TopicArn: 'arn:aws:sns:us-east-1:952934740739:email_request'
+            };     
+            console.log(params);
+            // Create promise and SNS service object
+            var publishTextPromise = sns.publish(params).promise();
+            // Handle promise's fulfilled/rejected states
+            publishTextPromise.then(
+              function(data) {
+                console.log(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                console.log("MessageID is " + data.MessageId);
+                
+              }).catch(
+                function(err) {
+                logger.error("Error in publishing SNS");
+                logger.error(err);
+                logger.error(err.stack);
+             
+          });
+            
             res.status(201).send(ans);
         }).catch(err => {
             logger.info('Error in creating answer' + err);
