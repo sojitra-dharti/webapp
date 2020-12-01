@@ -44,7 +44,7 @@ exports.create = async (req, res) => {
                 Message: "Question not found !"
             });
         }
-
+    
         const answer = {
             id: uuid,
             answer_text: req.body.answer_text,
@@ -78,15 +78,15 @@ exports.create = async (req, res) => {
                             var params = {
                                 MessageStructure: 'json',
                                 Message: JSON.stringify({
-                                    "default": JSON.stringify({
+                                   
                                         "AnsId": ans.id,
                                         "QuesId": ans.QuestionId,
                                         "Question":ques.question_text,
                                         "Answer": ans.answer_text,
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
-                                        "Action":"QuestionCreated"
-                                    }),
+                                        "Action":"AnswerCreated"
+                                   
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
@@ -259,6 +259,7 @@ exports.deleteAnswer = async (req, res) => {
                                 MessageStructure: 'json',
                                 Message: JSON.stringify({
                                     "default": JSON.stringify({
+                                        "AnsId": req.params.answerId,
                                         "QuesId": req.params.questionId,
                                         "Question":ques.question_text,
                                         "Email": user.email_address,
@@ -271,7 +272,7 @@ exports.deleteAnswer = async (req, res) => {
                             console.log("Ans deleted");
                             console.log(params);
 
-                            snsController.publishSNS(params);
+                            //snsController.publishSNS(params);
                           
                             // Create promise and SNS service object
                             //var publishTextPromise = sns.publish(params).promise();
@@ -365,6 +366,7 @@ exports.updateAnswer = async (req, res) => {
                                         MessageStructure: 'json',
                                         Message: JSON.stringify({
                                             "default": JSON.stringify({
+                                                "AnsId" : req.params.answerId,
                                                 "QuesId": req.params.questionId,
                                                 "Question":ques.question_text,
                                                 "Answer": result.answer_text,
