@@ -91,6 +91,7 @@ exports.create = async (req, res) => {
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
+                            logger.info("Domain name : " + dbConfig.DOMAIN);
                             // Create promise and SNS service object
                             var publishTextPromise = sns.publish(params).promise();
                             // Handle promise's fulfilled/rejected states
