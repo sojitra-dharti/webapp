@@ -262,6 +262,7 @@ exports.deleteAnswer = async (req, res) => {
                                         "AnsId": req.params.answerId,
                                         "QuesId": req.params.questionId,
                                         "Question":ques.question_text,
+                                        "Answer" : "AnswerDeleted",
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
                                         "Action":"AnswerDeleted"
@@ -369,7 +370,7 @@ exports.updateAnswer = async (req, res) => {
                                                 "AnsId" : req.params.answerId,
                                                 "QuesId": req.params.questionId,
                                                 "Question":ques.question_text,
-                                                "Answer": result.answer_text,
+                                                "Answer": answertext,
                                                 "Email": user.email_address,
                                                 "Firstname":user.first_name,
                                                 "Action":"AnswerUpdated"
