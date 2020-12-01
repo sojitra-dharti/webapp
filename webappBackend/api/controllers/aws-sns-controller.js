@@ -17,7 +17,7 @@ exports.publishSNS = async (message) => {
     
        await dynamoClient.get(searchParams, (err, data) => {
         if (err) {
-          console.log("Ddynamo db access problem");
+          console.log(err);
            logger.error("Ddynamo db access problem for " + params.QuesId);
            
         } else if (data.Item == null || data.Item == undefined) {
