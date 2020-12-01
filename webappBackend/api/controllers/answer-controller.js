@@ -85,6 +85,7 @@ exports.create = async (req, res) => {
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
                                         "Action":"AnswerCreated",
+                                        "Domain" : dbConfig.DOMAIN,
                                         "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id
                                     }),
                                 }), /* required */
@@ -262,7 +263,8 @@ exports.deleteAnswer = async (req, res) => {
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
                                         "Action":"AnswerDeleted",
-                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id
+                                        "Domain" : dbConfig.DOMAIN,
+                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/questions"
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
@@ -366,7 +368,9 @@ exports.updateAnswer = async (req, res) => {
                                                 "Answer": answertext,
                                                 "Email": user.email_address,
                                                 "Firstname":user.first_name,
-                                                "Action":"AnswerUpdated"
+                                                "Action":"AnswerUpdated",
+                                                "Domain" : dbConfig.DOMAIN,
+                                                "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId
                                             }),
                                         }), /* required */
                                         TopicArn: dbConfig.SNSTOPICARN
