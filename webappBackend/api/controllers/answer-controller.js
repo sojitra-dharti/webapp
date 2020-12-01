@@ -12,7 +12,7 @@ const AWSFileUpload = require("./aws-file-upload-controller");
 const s3Config = require("../../config/s3-config.js");
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
-const snsController = require('../controllers/aws-sns-controller');
+//const snsController = require('../controllers/aws-sns-controller');
 
 
 require('dotenv').config()
@@ -78,7 +78,7 @@ exports.create = async (req, res) => {
                             var params = {
                                 MessageStructure: 'json',
                                 Message: JSON.stringify({
-                                   
+                                    "default": JSON.stringify({
                                         "AnsId": ans.id,
                                         "QuesId": ans.QuestionId,
                                         "Question":ques.question_text,
@@ -86,25 +86,25 @@ exports.create = async (req, res) => {
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
                                         "Action":"AnswerCreated"
-                                   
+                                    }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
                            console.log("question create");
                            console.log(params);
 
-                           snsController.publishSNS(params);
+                           //snsController.publishSNS(params);
                             // Create promise and SNS service object
-                           
+                            var publishTextPromise = sns.publish(params).promise();
                             // Handle promise's fulfilled/rejected states
-                            // publishTextPromise.then(
-                            //     function (data) {
-                            //         logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                            //         logger.info(`Message ${params.Message.email}`);
-                            //     }).catch(
-                            //         function (err) {
-                            //             logger.error("Error in publishing SNS");
-                            //         });
+                            publishTextPromise.then(
+                                function (data) {
+                                    logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                                    logger.info(`Message ${params.Message.email}`);
+                                }).catch(
+                                    function (err) {
+                                        logger.error("Error in publishing SNS");
+                                    });
                         })
                 })
 
@@ -275,16 +275,16 @@ exports.deleteAnswer = async (req, res) => {
                             //snsController.publishSNS(params);
                           
                             // Create promise and SNS service object
-                            //var publishTextPromise = sns.publish(params).promise();
+                            var publishTextPromise = sns.publish(params).promise();
                             // Handle promise's fulfilled/rejected states
-                            // publishTextPromise.then(
-                            //     function (data) {
-                            //         logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                            //         logger.info(`Message ${params.Message.email}`);
-                            //     }).catch(
-                            //         function (err) {
-                            //             logger.error("Error in publishing SNS");
-                            //         });
+                            publishTextPromise.then(
+                                function (data) {
+                                    logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                                    logger.info(`Message ${params.Message.email}`);
+                                }).catch(
+                                    function (err) {
+                                        logger.error("Error in publishing SNS");
+                                    });
                         })
                 })
 
@@ -380,17 +380,17 @@ exports.updateAnswer = async (req, res) => {
                                     console.log("Ans updated");
                                     console.log(params);
                                     // Create promise and SNS service object
-                                     snsController.publishSNS(params);
+                                     //snsController.publishSNS(params);
                                     // var publishTextPromise = sns.publish(params).promise();
                                     // // Handle promise's fulfilled/rejected states
-                                    // publishTextPromise.then(
-                                    //     function (data) {
-                                    //         logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                                    //         logger.info(`Message ${params.Message.email}`);
-                                    //     }).catch(
-                                    //         function (err) {
-                                    //             logger.error("Error in publishing SNS");
-                                    //         });
+                                    publishTextPromise.then(
+                                        function (data) {
+                                            logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                                            logger.info(`Message ${params.Message.email}`);
+                                        }).catch(
+                                            function (err) {
+                                                logger.error("Error in publishing SNS");
+                                            });
                                 })
                         })
                     res.send(204);
