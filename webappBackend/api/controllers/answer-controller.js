@@ -12,6 +12,7 @@ const AWSFileUpload = require("./aws-file-upload-controller");
 const s3Config = require("../../config/s3-config.js");
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
+const snsController = require('../controllers/aws-sns-controller');
 
 
 require('dotenv').config()
@@ -78,256 +79,346 @@ exports.create = async (req, res) => {
                                 MessageStructure: 'json',
                                 Message: JSON.stringify({
                                     "default": JSON.stringify({
-                                        "answer_id": ans.id,
-                                        "question_id": ans.QuestionId,
-                                        "created_timestamp": ans.created_timestamp,
-                                        "updated_timestamp": ans.updated_timestamp,
-                                        "user_id": ans.UserId,
-                                        "answer_text": ans.answer_text,
-                                        "email": user.email_address 
+                                        "AnsId": ans.id,
+                                        "QuesId": ans.QuestionId,
+                                        "Question":ques.question_text,
+                                        "Answer": ans.answer_text,
+                                        "Email": user.email_address,
+                                        "Firstname":user.first_name,
+                                        "Action":"QuestionCreated"
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
-                            console.log(params);
+                           console.log("question create");
+                           console.log(params);
+
+                           snsController.publishSNS(params);
                             // Create promise and SNS service object
-                            var publishTextPromise = sns.publish(params).promise();
+                           
                             // Handle promise's fulfilled/rejected states
-                            publishTextPromise.then(
-                                function (data) {
-                                    logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                                    logger.info(`Message ${params.Message.email}`);
-        
-                                    console.log("MessageID is " + data.MessageId);
-        
-                                }).catch(
-                                    function (err) {
-                                        logger.error("Error in publishing SNS");
-                                        logger.error(err);
-                                        logger.error(err.stack);
-        
-                                    });
+                            // publishTextPromise.then(
+                            //     function (data) {
+                            //         logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                            //         logger.info(`Message ${params.Message.email}`);
+                            //     }).catch(
+                            //         function (err) {
+                            //             logger.error("Error in publishing SNS");
+                            //         });
                         })
                 })
 
-                    // Send SNS topic
-
-
-
-                   
-
-                    res.status(201).send(ans);
-                }).catch(err => {
-                    logger.info('Error in creating answer' + err);
-                    res.send({
-                        Message: "Error in creating answer"
-                    });
-                    console.log(err);
-                });
-        }
+            res.status(201).send(ans);
+        }).catch(err => {
+            logger.info('Error in creating answer' + err);
+            res.send({
+                Message: "Error in creating answer"
+            });
+            console.log(err);
+        });
+    }
     else {
-                logger.error('User is not authorized !');
+        logger.error('User is not authorized !');
 
-                res.status(401).send({
-                    Message: "User is not authorized !"
-                });
-            }
+        res.status(401).send({
+            Message: "User is not authorized !"
+        });
+    }
 
 
 }
 
-    exports.getAnswerById = (req, res) => {
-        logger.info('Getting answer by Id');
-        var apiStartTime = timeController.GetCurrentTime();
-        Metrics.increment('Answer.ViewById.ApiCount');
+exports.getAnswerById = (req, res) => {
+    logger.info('Getting answer by Id');
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.ViewById.ApiCount');
 
-        // validation for mandatory question and answerid else bad 404
-        if (!req.params.questionId || !req.params.answerId) {
+    // validation for mandatory question and answerid else bad 404
+    if (!req.params.questionId || !req.params.answerId) {
+        res.status(404).send({
+            Message: "questionid and answerid required !"
+        })
+    }
+    var DBStartTime = timeController.GetCurrentTime();
+    return Answer.findAll(
+        {
+            where:
+            {
+                id: req.params.answerId,
+                QuestionId: req.params.questionId
+            }
+        })
+        .then(ques => {
+            Metrics.timing('Answer.ViewById.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Answer.ViewById.ApiTime', timeController.GetTimeDifference(apiStartTime));
+            res.status(200).send(ques);
+        }).catch(err => {
+            logger.error('Error in fetching answer by Id');
             res.status(404).send({
-                Message: "questionid and answerid required !"
-            })
-        }
-        var DBStartTime = timeController.GetCurrentTime();
-        return Answer.findAll(
-            {
-                where:
-                {
-                    id: req.params.answerId,
-                    QuestionId: req.params.questionId
-                }
-            })
-            .then(ques => {
-                Metrics.timing('Answer.ViewById.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
-                Metrics.timing('Answer.ViewById.ApiTime', timeController.GetTimeDifference(apiStartTime));
-                res.status(200).send(ques);
-            }).catch(err => {
-                logger.error('Error in fetching answer by Id');
-                res.status(404).send({
-                    Message: "Answer not found"
-                });
+                Message: "Answer not found"
             });
-    }
+        });
+}
 
-    exports.getAnswerByQuesId = (quesId) => {
-        return Answer.findAll(
+exports.getAnswerByQuesId = (quesId) => {
+    return Answer.findAll(
+        {
+            where:
             {
-                where:
-                {
-                    QuestionId: quesId
-                }
-            })
-            .then(ans => {
-                return ans;
-            }).catch(err => {
-                console.log(err);
-            });
+                QuestionId: quesId
+            }
+        })
+        .then(ans => {
+            return ans;
+        }).catch(err => {
+            console.log(err);
+        });
 
-    }
+}
 
-    exports.deleteAnswer = async (req, res) => {
-        logger.info('Deleting Answer');
-        var apiStartTime = timeController.GetCurrentTime();
-        Metrics.increment('Answer.Delete.ApiCount');
-        const existUser = await Usercontroller.IsAuthenticated(req, res);
-        if (existUser) {
-            await File.findAll({
-                where:
-                {
-                    QuestionId: req.params.questionId,
-                    AnswerId: req.params.answerId
-                }
-            }).then((file) => {
-                if (file) {
+exports.deleteAnswer = async (req, res) => {
+    logger.info('Deleting Answer');
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.Delete.ApiCount');
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    if (existUser) {
+        await File.findAll({
+            where:
+            {
+                QuestionId: req.params.questionId,
+                AnswerId: req.params.answerId
+            }
+        }).then((file) => {
+            if (file) {
 
-                    for (i = 0; i < file.length; i++) {
-                        let s3bucket = new AWS.S3({
+                for (i = 0; i < file.length; i++) {
+                    let s3bucket = new AWS.S3({
 
-                            Bucket: bucketName
-                        });
+                        Bucket: bucketName
+                    });
 
-                        const params = {
-                            Bucket: bucketName,
-                            Key: file[i].id + file[i].file_name
+                    const params = {
+                        Bucket: bucketName,
+                        Key: file[i].id + file[i].file_name
+                    }
+                    var S3StartTime = timeController.GetCurrentTime();
+                    s3bucket.deleteObject(params, function (err, data) {
+                        Metrics.timing('File.S3Bucket.DeleteFile.Time', timeController.GetTimeDifference(S3StartTime));
+                        if (err) {
+                            logger.error('Error in uploading file to s3' + err);
+                            console.log(err);
                         }
-                        var S3StartTime = timeController.GetCurrentTime();
-                        s3bucket.deleteObject(params, function (err, data) {
-                            Metrics.timing('File.S3Bucket.DeleteFile.Time', timeController.GetTimeDifference(S3StartTime));
-                            if (err) {
-                                logger.error('Error in uploading file to s3' + err);
-                                console.log(err);
-                            }
-                            else {
-                                console.log("sucess");
-                            }
-                        });
-                        File.destroy({
-                            where: {
-                                id: file[i].id,
+                        else {
+                            console.log("sucess");
+                        }
+                    });
+                    File.destroy({
+                        where: {
+                            id: file[i].id,
+                        }
+                    })
+                }
+
+            }
+        })
+        var DBStartTime = timeController.GetCurrentTime();
+        Answer.destroy({
+            where:
+            {
+                id: req.params.answerId,
+                QuestionId: req.params.questionId,
+                UserId: existUser[0].id
+            }
+        }).then((result) => {
+            logger.info('Answer Deleted');
+            Metrics.timing('Answer.Delete.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+            Metrics.timing('Answer.Delete.ApiTime', timeController.GetTimeDifference(apiStartTime));
+            if (result == 0) {
+                res.status(404).send({
+                    Message: "Answer not found !"
+                });
+            }
+            Questiondb.findOne(
+                {
+                    where:
+                    {
+                        id: req.params.questionId
+                    }
+                })
+                .then(ques => {
+
+                    User.findOne(
+                        {
+                            where:
+                            {
+                                id: ques.UserId
                             }
                         })
-                    }
+                        .then(user => {
+                            var params = {
+                                MessageStructure: 'json',
+                                Message: JSON.stringify({
+                                    "default": JSON.stringify({
+                                        "QuesId": req.params.questionId,
+                                        "Question":ques.question_text,
+                                        "Email": user.email_address,
+                                        "Firstname":user.first_name,
+                                        "Action":"AnswerDeleted"
+                                    }),
+                                }), /* required */
+                                TopicArn: dbConfig.SNSTOPICARN
+                            };
+                            console.log("Ans deleted");
+                            console.log(params);
 
-                }
-            })
-            var DBStartTime = timeController.GetCurrentTime();
-            Answer.destroy({
-                where:
-                {
-                    id: req.params.answerId,
-                    QuestionId: req.params.questionId,
-                    UserId: existUser[0].id
-                }
-            }).then((result) => {
-                logger.info('Answer Deleted');
-                Metrics.timing('Answer.Delete.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
-                Metrics.timing('Answer.Delete.ApiTime', timeController.GetTimeDifference(apiStartTime));
+                            snsController.publishSNS(params);
+                          
+                            // Create promise and SNS service object
+                            //var publishTextPromise = sns.publish(params).promise();
+                            // Handle promise's fulfilled/rejected states
+                            // publishTextPromise.then(
+                            //     function (data) {
+                            //         logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                            //         logger.info(`Message ${params.Message.email}`);
+                            //     }).catch(
+                            //         function (err) {
+                            //             logger.error("Error in publishing SNS");
+                            //         });
+                        })
+                })
+
+
+
+
+            res.status(204).send();
+        }).catch(err => {
+            logger.error('Error in deleting answer' + err);
+            res.status(204).send()
+        })
+    } else {
+        logger.error('User is unauthorized');
+        res.status(401).send({
+            Message: "user unauthorized"
+        });
+    }
+}
+
+exports.updateAnswer = async (req, res) => {
+    var apiStartTime = timeController.GetCurrentTime();
+    Metrics.increment('Answer.Update.ApiCount');
+    logger.info('Updating Answer');
+    var currentDate = new Date();
+    var answertext = req.body.answer_text;
+    var questionId = req.params.questionId;
+    var answerId = req.params.answerId;
+
+
+    if (!answertext) {
+        res.status(400).send({
+            Message: "please provide answer_text !"
+        });
+    }
+
+    const existUser = await Usercontroller.IsAuthenticated(req, res);
+    console.log(existUser[0].id);
+    if (existUser) {
+        var DBStartTime = timeController.GetCurrentTime();
+        Answer.update({
+            answer_text: answertext,
+            updated_timestamp: currentDate,
+        }, {
+            where:
+            {
+                id: answerId,
+                UserId: existUser[0].id,
+                QuestionId: questionId
+            }
+        })
+            .then((result) => {
+                Metrics.timing('Answer.Update.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
+                Metrics.timing('Answer.Update.ApiTime', timeController.GetTimeDifference(apiStartTime));
                 if (result == 0) {
                     res.status(404).send({
-                        Message: "Answer not found !"
+                        Message: "User can only update their own answers"
                     });
                 }
-                res.status(204).send();
-            }).catch(err => {
-                logger.error('Error in deleting answer' + err);
-                res.status(204).send()
-            })
-        } else {
-            logger.error('User is unauthorized');
-            res.status(401).send({
-                Message: "user unauthorized"
-            });
-        }
-    }
-
-    exports.updateAnswer = async (req, res) => {
-        var apiStartTime = timeController.GetCurrentTime();
-        Metrics.increment('Answer.Update.ApiCount');
-        logger.info('Updating Answer');
-        var currentDate = new Date();
-        var answertext = req.body.answer_text;
-        var questionId = req.params.questionId;
-        var answerId = req.params.answerId;
-
-
-        if (!answertext) {
-            res.status(400).send({
-                Message: "please provide answer_text !"
-            });
-        }
-
-        const existUser = await Usercontroller.IsAuthenticated(req, res);
-        console.log(existUser[0].id);
-        if (existUser) {
-            var DBStartTime = timeController.GetCurrentTime();
-            Answer.update({
-                answer_text: answertext,
-                updated_timestamp: currentDate,
-            }, {
-                where:
-                {
-                    id: answerId,
-                    UserId: existUser[0].id,
-                    QuestionId: questionId
+                else {
+                    console.log(result);
+                    Questiondb.findOne(
+                        {
+                            where:
+                            {
+                                id: questionId
+                            }
+                        })
+                        .then(ques => {
+        
+                            User.findOne(
+                                {
+                                    where:
+                                    {
+                                        id: ques.UserId
+                                    }
+                                })
+                                .then(user => {
+                                    var params = {
+                                        MessageStructure: 'json',
+                                        Message: JSON.stringify({
+                                            "default": JSON.stringify({
+                                                "QuesId": req.params.questionId,
+                                                "Question":ques.question_text,
+                                                "Answer": result.answer_text,
+                                                "Email": user.email_address,
+                                                "Firstname":user.first_name,
+                                                "Action":"AnswerUpdated"
+                                            }),
+                                        }), /* required */
+                                        TopicArn: dbConfig.SNSTOPICARN
+                                    };
+                                    console.log("Ans updated");
+                                    console.log(params);
+                                    // Create promise and SNS service object
+                                     snsController.publishSNS(params);
+                                    // var publishTextPromise = sns.publish(params).promise();
+                                    // // Handle promise's fulfilled/rejected states
+                                    // publishTextPromise.then(
+                                    //     function (data) {
+                                    //         logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
+                                    //         logger.info(`Message ${params.Message.email}`);
+                                    //     }).catch(
+                                    //         function (err) {
+                                    //             logger.error("Error in publishing SNS");
+                                    //         });
+                                })
+                        })
+                    res.send(204);
+                    console.log({
+                        Message: "Answer updated" + result
+                    });
                 }
-            })
-                .then((result) => {
-                    Metrics.timing('Answer.Update.DbQueryTime', timeController.GetTimeDifference(DBStartTime));
-                    Metrics.timing('Answer.Update.ApiTime', timeController.GetTimeDifference(apiStartTime));
-                    if (result == 0) {
-                        res.status(404).send({
-                            Message: "User can only update their own answers"
-                        });
-                    }
-                    else {
-                        logger.error('Error in Updating Answer');
-                        res.send(204);
-                        console.log({
-                            Message: "Answer updated" + result
-                        });
-                    }
-                });
-        }
-        else {
-            logger.error('User is unauthorized for updating answer');
-            res.status(401).send({
-                Message: "unauthorized"
             });
-        }
     }
+    else {
+        logger.error('User is unauthorized for updating answer');
+        res.status(401).send({
+            Message: "unauthorized"
+        });
+    }
+}
 
-    exports.getAnswerByIdAndUserId = (answerId, userId) => {
-        return Answer.findAll(
+exports.getAnswerByIdAndUserId = (answerId, userId) => {
+    return Answer.findAll(
+        {
+            where:
             {
-                where:
-                {
-                    id: answerId,
-                    UserId: userId
-                }
-            })
-            .then(ans => {
-                return ans;
-            }).catch(err => {
-                console.log(err);
-            });
-    }
+                id: answerId,
+                UserId: userId
+            }
+        })
+        .then(ans => {
+            return ans;
+        }).catch(err => {
+            console.log(err);
+        });
+}
 
