@@ -12,7 +12,7 @@ const AWSFileUpload = require("./aws-file-upload-controller");
 const s3Config = require("../../config/s3-config.js");
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
-//const snsController = require('../controllers/aws-sns-controller');
+
 
 
 require('dotenv').config()
@@ -91,7 +91,7 @@ exports.create = async (req, res) => {
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
                            console.log("question create");
-                           console.log(params);
+                          
 
                            //snsController.publishSNS(params);
                             // Create promise and SNS service object
@@ -100,7 +100,7 @@ exports.create = async (req, res) => {
                             publishTextPromise.then(
                                 function (data) {
                                     logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                                    logger.info(`Message ${params.Message.email}`);
+                                   
                                 }).catch(
                                     function (err) {
                                         logger.error("Error in publishing SNS");
@@ -280,7 +280,7 @@ exports.deleteAnswer = async (req, res) => {
                             publishTextPromise.then(
                                 function (data) {
                                     logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                                    logger.info(`Message ${params.Message.email}`);
+                                  
                                 }).catch(
                                     function (err) {
                                         logger.error("Error in publishing SNS");
@@ -378,15 +378,15 @@ exports.updateAnswer = async (req, res) => {
                                         TopicArn: dbConfig.SNSTOPICARN
                                     };
                                     console.log("Ans updated");
-                                    console.log(params);
+                                   
                                     // Create promise and SNS service object
                                      //snsController.publishSNS(params);
-                                    // var publishTextPromise = sns.publish(params).promise();
+                                     var publishTextPromise = sns.publish(params).promise();
                                     // // Handle promise's fulfilled/rejected states
                                     publishTextPromise.then(
                                         function (data) {
                                             logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);
-                                            logger.info(`Message ${params.Message.email}`);
+                                           
                                         }).catch(
                                             function (err) {
                                                 logger.error("Error in publishing SNS");
