@@ -13,8 +13,6 @@ const s3Config = require("../../config/s3-config.js");
 const Metrics = require('../../config/metrics-config');
 const timeController = require('../controllers/time-controller');
 
-
-
 require('dotenv').config()
 const bucketName = s3Config.bucketName;
 const AWS = require('../../config/aws-config.js');
@@ -22,6 +20,7 @@ var log4js = require('../../config/log4js');
 const logger = log4js.getLogger('logs');
 const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 const dbConfig = require("../../config/db.config.js");
+
 exports.create = async (req, res) => {
     logger.info('Creating Answer');
     var apiStartTime = timeController.GetCurrentTime();
@@ -85,15 +84,12 @@ exports.create = async (req, res) => {
                                         "Answer": ans.answer_text,
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
-                                        "Action":"AnswerCreated"
+                                        "Action":"AnswerCreated",
+                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
-                           console.log("question create");
-                          
-
-                           //snsController.publishSNS(params);
                             // Create promise and SNS service object
                             var publishTextPromise = sns.publish(params).promise();
                             // Handle promise's fulfilled/rejected states
@@ -265,15 +261,12 @@ exports.deleteAnswer = async (req, res) => {
                                         "Answer" : "AnswerDeleted",
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
-                                        "Action":"AnswerDeleted"
+                                        "Action":"AnswerDeleted",
+                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
-                            console.log("Ans deleted");
-                            console.log(params);
-
-                            //snsController.publishSNS(params);
                           
                             // Create promise and SNS service object
                             var publishTextPromise = sns.publish(params).promise();
@@ -378,12 +371,8 @@ exports.updateAnswer = async (req, res) => {
                                         }), /* required */
                                         TopicArn: dbConfig.SNSTOPICARN
                                     };
-                                    console.log("Ans updated");
-                                   
-                                    // Create promise and SNS service object
-                                     //snsController.publishSNS(params);
                                      var publishTextPromise = sns.publish(params).promise();
-                                    // // Handle promise's fulfilled/rejected states
+                                  
                                     publishTextPromise.then(
                                         function (data) {
                                             logger.info(`Message ${params.Message} sent to the topic ${params.TopicArn}`);

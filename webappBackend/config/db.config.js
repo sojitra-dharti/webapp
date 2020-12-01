@@ -5,6 +5,7 @@ module.exports = {
   PASSWORD:process.env.DBpassword,
   DB: process.env.DBname,
   SNSTOPICARN: process.env.sns_topic_arn,
+  DOMAIN:process.env.Domain,
 
     dialect: "mysql",
     pool: {
