@@ -85,7 +85,7 @@ exports.create = async (req, res) => {
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
                                         "Action":"AnswerCreated",
-                                        "Domain" : dbConfig.DOMAIN,
+                                        "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
                                         "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id
                                     }),
                                 }), /* required */
@@ -265,7 +265,7 @@ exports.deleteAnswer = async (req, res) => {
                                         "Email": user.email_address,
                                         "Firstname":user.first_name,
                                         "Action":"AnswerDeleted",
-                                        "Domain" : dbConfig.DOMAIN,
+                                        "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
                                         "URL" : "http://"+ dbConfig.DOMAIN +"/v1/questions"
                                     }),
                                 }), /* required */
@@ -371,7 +371,7 @@ exports.updateAnswer = async (req, res) => {
                                                 "Email": user.email_address,
                                                 "Firstname":user.first_name,
                                                 "Action":"AnswerUpdated",
-                                                "Domain" : dbConfig.DOMAIN,
+                                                "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
                                                 "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId
                                             }),
                                         }), /* required */
