@@ -266,7 +266,7 @@ exports.deleteAnswer = async (req, res) => {
                                         "Firstname":user.first_name,
                                         "Action":"AnswerDeleted",
                                         "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
-                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/questions"
+                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
