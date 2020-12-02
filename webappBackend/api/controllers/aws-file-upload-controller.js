@@ -5,8 +5,6 @@ const bucketName = s3Config.bucketName;
 exports.uploadFileToS3 = async (file, filename) => {
 
     let s3bucket = new AWS.S3({
-        // accessKeyId: s3Config.accessKeyId,
-        // secretAccessKey: s3Config.secretAccessKey,
         Bucket: bucketName
     });
 
