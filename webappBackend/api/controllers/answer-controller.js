@@ -86,12 +86,13 @@ exports.create = async (req, res) => {
                                         "Firstname":user.first_name,
                                         "Action":"AnswerCreated",
                                         "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
-                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id
+                                        "AnswerURL" : "https://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id,
+                                        "QuesURL" : "https://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
                             };
-                            logger.info("http://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id);
+                            logger.info("https://"+ dbConfig.DOMAIN +"/v1/question/" + ans.QuestionId + "/answer/" + ans.id);
                             logger.info("Domain name : " + dbConfig.DOMAIN);
                             // Create promise and SNS service object
                             var publishTextPromise = sns.publish(params).promise();
@@ -266,7 +267,8 @@ exports.deleteAnswer = async (req, res) => {
                                         "Firstname":user.first_name,
                                         "Action":"AnswerDeleted",
                                         "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
-                                        "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId
+                                        "AnswerURL" : "https://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId,
+                                        "QuesURL" : "https://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId
                                     }),
                                 }), /* required */
                                 TopicArn: dbConfig.SNSTOPICARN
@@ -372,7 +374,8 @@ exports.updateAnswer = async (req, res) => {
                                                 "Firstname":user.first_name,
                                                 "Action":"AnswerUpdated",
                                                 "Domain" : "donotreply-webapp@"+dbConfig.DOMAIN,
-                                                "URL" : "http://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId
+                                                "AnswerURL" : "https://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId + "/answer/" + req.params.answerId,
+                                                "QuesURL" : "https://"+ dbConfig.DOMAIN +"/v1/question/" + req.params.questionId
                                             }),
                                         }), /* required */
                                         TopicArn: dbConfig.SNSTOPICARN
