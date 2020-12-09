@@ -113,7 +113,7 @@ db.file.belongsTo(db.answer, {
 // db.sequelize.sync({ force: true }).then(() => {
 //   console.log("Drop and re-sync db.");
 // });
-db.sequelize.query("SHOW STATUS LIKE 'Ssl_%'", {
+db.sequelize.query("SHOW STATUS LIKE 'Ssl_%';", {
   type: QueryTypes.SELECT
 }).then((result) => {
   // console.log(result[0].Value);
