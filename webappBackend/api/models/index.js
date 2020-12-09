@@ -120,8 +120,10 @@ db.sequelize.query("SHOW STATUS LIKE 'Ssl_%'", {
   if(result == undefined || result == null || result.length == 0){
       logger.info(`RDS DB SSL Cipher check info: SSL data not available`, {tags: 'http', additionalInfo: {result: JSON.parse(JSON.stringify(result))}});
   } else {     
-      logger.info(`RDS DB SSL Cipher check info query: SHOW STATUS LIKE 'Ssl_%'; Result: `, {tags: 'http', additionalInfo: {result: JSON.parse(result)}});
-      logger.info(`RDS DB SSL Cipher check info query: SHOW STATUS LIKE 'Ssl_%'; Result1: `, {additionalInfo: {result: result}});
+    var parsed = JSON.parse(result);
+      logger.info(`RDS DB SSL Cipher check info query: SHOW STATUS LIKE 'Ssl_%'; Result0: `, {tags: 'http', additionalInfo: {result: JSON.stringify(result)}});
+      logger.info(`RDS DB SSL Cipher check info query: SHOW STATUS LIKE 'Ssl_%'; Result1: `, {tags: 'http', additionalInfo: {result: parsed[0]}});
+      logger.info(`RDS DB SSL Cipher check info query: SHOW STATUS LIKE 'Ssl_%'; Result2: `, {additionalInfo: {result: result}});
      }
 }).catch(err => {
   logger.error(`Error in RDS DB SSL Cipher check: `, {tags: 'http', additionalInfo: {error: err}});
