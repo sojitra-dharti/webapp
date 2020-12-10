@@ -15,6 +15,10 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     min: dbConfig.pool.min,
     acquire: dbConfig.pool.acquire,
     idle: dbConfig.pool.idle
+  },
+  dialectOptions:{
+    ssl:"Amazon RDS",
+    rejectUnauthorized:true
   }
 });
 
@@ -83,35 +87,16 @@ db.file.belongsTo(db.answer, {
   as: "answers",
 });
 
-  
-db.sequelize.query("SHOW STATUS LIKE 'Ssl_%'", {
-  type: QueryTypes.SELECT
-}).then((result) => {
-
-  if(result == undefined || result == null || result.length == 0){
-      logger.info(`SSL info not available`, {tags: 'http', additionalInfo: {result: JSON.stringify(result)}});
-  } else {     
-    var parsed = JSON.parse(result);
-      logger.info(`SSL info: `, JSON.stringify(result));
-      
-     }
-}).catch(err => {
-  logger.error(`Error in RDS DB SSL Cipher check: `, {tags: 'http', additionalInfo: {error: err}});
-});
-
 db.sequelize.query("SELECT id, user, host, connection_type FROM performance_schema.threads pst INNER JOIN information_schema.processlist isp ON pst.processlist_id = isp.id;", {
   type: QueryTypes.SELECT
 }).then((result) => {
-
   if(result == undefined || result == null || result.length == 0){
-      logger.info(`RDS DB SSL Cipher check info: SSL data not available`, JSON.stringify(result));
+      logger.info(`SSL info not available : `, JSON.stringify(result));
   } else {     
-    
-      logger.info(`RDS DB SSL Cipher check info query: SHOW STATUS LIKE 'Ssl_%'; Result0: `, JSON.stringify(result));
-      
+      logger.info(`SSL Info : `, JSON.stringify(result));
      }
 }).catch(err => {
-  logger.error(`Error in RDS DB SSL Cipher check: `, {tags: 'http', additionalInfo: {error: err}});
+  logger.error(`Error: `, {additionalInfo: {error: err}});
 });
 
 module.exports = db;
