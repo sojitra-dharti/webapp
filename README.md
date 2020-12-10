@@ -49,7 +49,9 @@ This project was generated with node version greater than 12.0
 2. `AWS_SECRET_ACCESS_KEY`
 3. `CODEDEPLOY_BUCKETNAME`
 
+**Command to import the SSL certificate for LoadBalancer**
 
+`aws acm import-certificate --certificate fileb://prod_dhartisojitra_me.crt --private-key fileb://ssl.key --certificate-chain fileb://prod_dhartisojitra_me.ca-bundle`
 
 ## Steps to launch back end
 make sure to get into webappBackend directory.
@@ -60,7 +62,7 @@ Run `npm run start` to launch the back end.
 make sure to get into webappBackend directory.
 Run `npm run test`
 
-update demo8
+
 
 
 
